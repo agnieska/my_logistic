@@ -1,0 +1,864 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Régression logistique - Exercices tirés du MOOC d'Andrew Ng"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Chargement des données"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Le jeu de données représente les chances de différents étudiants d'être admis à un programme universitaire en fonction de leurs résultats à deux examens"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Charger les données du fichier ex2data1.csv"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 286,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 287,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "data = pd.read_csv(\"ex2data1.csv\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 288,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>exam1</th>\n",
+       "      <th>exam2</th>\n",
+       "      <th>admission</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>34.623660</td>\n",
+       "      <td>78.024693</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>30.286711</td>\n",
+       "      <td>43.894998</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>35.847409</td>\n",
+       "      <td>72.902198</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>60.182599</td>\n",
+       "      <td>86.308552</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>79.032736</td>\n",
+       "      <td>75.344376</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>45.083277</td>\n",
+       "      <td>56.316372</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>61.106665</td>\n",
+       "      <td>96.511426</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>75.024746</td>\n",
+       "      <td>46.554014</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>76.098787</td>\n",
+       "      <td>87.420570</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>84.432820</td>\n",
+       "      <td>43.533393</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       exam1      exam2  admission\n",
+       "0  34.623660  78.024693          0\n",
+       "1  30.286711  43.894998          0\n",
+       "2  35.847409  72.902198          0\n",
+       "3  60.182599  86.308552          1\n",
+       "4  79.032736  75.344376          1\n",
+       "5  45.083277  56.316372          0\n",
+       "6  61.106665  96.511426          1\n",
+       "7  75.024746  46.554014          1\n",
+       "8  76.098787  87.420570          1\n",
+       "9  84.432820  43.533393          1"
+      ]
+     },
+     "execution_count": 288,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data.head(10)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Visualiser les données"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Vous pouvez vous amuser à reproduire ce graphe avec les librairies Python, mais ne perdez pas trop de temps là-dessus non plus, il y a beaucoup à faire après!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<img src=\"figure-1.png\">"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Découpez vos données en une matrice X et un vecteur y et transformerz-les en array numpy"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 289,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X = data[['exam1', 'exam2']]\n",
+    "y = data['admission']"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Vérifiez bien les dimensions de vos structures de données (X.shape)  \n",
+    "La matrice X doit-elle être de dimensions m x n ou bien m x (n+1) ? Quelle est la valeur de n?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 290,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "((100, 2), (100,))"
+      ]
+     },
+     "execution_count": 290,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X.shape, y.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 291,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(pandas.core.frame.DataFrame, pandas.core.series.Series)"
+      ]
+     },
+     "execution_count": 291,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "type(X), type(y)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 292,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(numpy.ndarray, numpy.ndarray)"
+      ]
+     },
+     "execution_count": 292,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X = np.array(X)\n",
+    "y = np.array(y)\n",
+    "type(X), type(y)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 293,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Add a column of ones in X\n",
+    "vector = np.ones(100, dtype=float)\n",
+    "X =np.c_[vector, X]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 294,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 1.        , 34.62365962, 78.02469282],\n",
+       "       [ 1.        , 30.28671077, 43.89499752],\n",
+       "       [ 1.        , 35.84740877, 72.90219803],\n",
+       "       [ 1.        , 60.18259939, 86.3085521 ],\n",
+       "       [ 1.        , 79.03273605, 75.34437644],\n",
+       "       [ 1.        , 45.08327748, 56.31637178],\n",
+       "       [ 1.        , 61.10666454, 96.51142588],\n",
+       "       [ 1.        , 75.02474557, 46.55401354],\n",
+       "       [ 1.        , 76.0987867 , 87.42056972],\n",
+       "       [ 1.        , 84.43281996, 43.53339331]])"
+      ]
+     },
+     "execution_count": 294,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X[:10,:]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Initialisez theta en un vecteur de zéros"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Combien de zéros vous faudra-t-il....?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 295,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([0., 0., 0.])"
+      ]
+     },
+     "execution_count": 295,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "theta = np.zeros(3)\n",
+    "theta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Formulation de l'hypothèse"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Revoyez l'équation de l'hypothèse de la régression logistique. Le produit de theta et de X est enveloppé dans une fonction g(z) qui correspond à la fonction sigmoïde. Nous allons commencer par coder cette fonction."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Écrivez une fonction _sigmoid_ qui applique la sigmoïde à son argument et retourne le résultat. Si elle reçoit une matrice ou un vecteur en input, elle doit s'appliquer sur chaque élément individuellement et retourner une structure de mêmes dimensions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 296,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def sigmoid(z):\n",
+    "    return 1/(1 + np.exp(-z))\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Vérifiez votre fonction. Quelle valeur renvoie une sigmoïde si z=0? Si z est grand? Si z est petit?  \n",
+    "Il est possible que vous ayez un lorsque la fonction exponentielle reçoit des valeurs trop grandes. Dans ce cas vous pourrez éventuellement remplacer votre fonction sigmoïde par celle de scipy pour éviter des problèmes dans le reste de votre implémentation."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 297,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.5"
+      ]
+     },
+     "execution_count": 297,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sigmoid(0)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Écrivez une fonction _predict_, qui correspond à l'hypohèse hθ(x), qui prend en paramètres X et theta, les multiplie (attention à l'ordre!), applique la fonction sigmoide, et se débrouille pour que le résultat final soit un vecteur de 1 et 0 correspondant aux catégories"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 298,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def predict(X, theta):\n",
+    "    \n",
+    "    return sigmoid(-np.dot(X, theta))\n",
+    "# returns a 100 x 1 matrix"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 299,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,\n",
+       "       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,\n",
+       "       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,\n",
+       "       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,\n",
+       "       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,\n",
+       "       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,\n",
+       "       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,\n",
+       "       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])"
+      ]
+     },
+     "execution_count": 299,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "predict(X, theta)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Entraînement du modèle"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Définissez la fonction de coût de votre modèle"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 300,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def cost(X, y, theta):\n",
+    "    m = X.shape[0]\n",
+    "    #error = predict(X, theta) - y\n",
+    "    #squared_error = error ** 2\n",
+    "    #mean_squared_error = squared_error / m\n",
+    "    #cost = np.sum(squared_error) / 2\n",
+    "    h = predict(X, theta)\n",
+    "    cost = -(np.dot(y.T, np.log(h)) + np.dot((1-y).T, np.log(1-h)))/m\n",
+    "    return cost"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Appelez votre fonction _cost_. Vous devriez obtenir une valeur d'environ 0.693"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 301,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.6931471805599453"
+      ]
+     },
+     "execution_count": 301,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cost(X, y, theta)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Écrivez une fonction _fit_ qui prend en arguments le vecteur X et le vecteur y des données d'entraînement et renvoie le vecteur de paramètres _theta_ qui a été appris, ainsi que l'évolution du coût"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Noter que l'exercice original ne fait pas faire la descente du gradient pour entraîner le modèle, mais plutôt une fonction d'optimisation avancée (_fminunc_ en Matlab). Nous tenterons de faire quand même la descente du gradient. Les plus téméraires peuvent aussi trouver une fonction d'optimisation équivalente en Python et comparer les résultats."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 302,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def fit(X, y, theta, alpha, num_iters):\n",
+    "    # Initialiser certaines variable utiles\n",
+    "    m = X.shape[0]\n",
+    "    J_history = []\n",
+    "    \n",
+    "    # Boucler sur le nombre d'itérations\n",
+    "    for _ in range(num_iters):\n",
+    "        theta = theta + (alpha/m) * np.dot((predict(X, theta) - y), X)\n",
+    "        #theta_story\n",
+    "        J_history.append(cost(X,y,theta))\n",
+    "        \n",
+    "\n",
+    "    return theta, J_history"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Lancez l'apprentissage en appelant la fonction _fit_ et en prenant bien soin de récupérer le résultat de *theta* à la fin!!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Voyez entre vous quelles valeurs semblent correctes pour alpha et num_iters"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 333,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "theta, J_history = fit(X, y, theta, 0.004, 300000)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 334,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([29.45297738, -0.24059295, -0.23616698])"
+      ]
+     },
+     "execution_count": 334,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "theta"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 335,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "([0.20752777565408603,\n",
+       "  0.20752776890484198,\n",
+       "  0.20752776215560742,\n",
+       "  0.2075277554063821,\n",
+       "  0.20752774865716617,\n",
+       "  0.2075277419079596,\n",
+       "  0.20752773515876236,\n",
+       "  0.20752772840957434,\n",
+       "  0.20752772166039576,\n",
+       "  0.20752771491122654],\n",
+       " [0.2058848889150728,\n",
+       "  0.20588488458399343,\n",
+       "  0.20588488025292065,\n",
+       "  0.20588487592185473,\n",
+       "  0.20588487159079563,\n",
+       "  0.20588486725974334,\n",
+       "  0.2058848629286979,\n",
+       "  0.20588485859765926,\n",
+       "  0.20588485426662737,\n",
+       "  0.20588484993560222])"
+      ]
+     },
+     "execution_count": 335,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "J_history[:10], J_history[-10:]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Appelez la fonction _cost_ avec le nouveau theta après entraînement"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Vous devriez obtenir une valeur autour de 0.203"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 336,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.20588484993560222"
+      ]
+     },
+     "execution_count": 336,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cost(X, y, theta)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### On visualise maintenant l'évolution du coût en fonction du nombre d'itérations"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 341,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[<matplotlib.lines.Line2D at 0x11d059080>]"
+      ]
+     },
+     "execution_count": 341,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<matplotlib.figure.Figure at 0x10cd30400>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "%matplotlib inline\n",
+    "fig = plt.figure()\n",
+    "ax = plt.axes()\n",
+    "ax.plot(J_history)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Évaluation de votre modèle"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Nous allons évaluer la performance du modèle de deux façons:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Évaluez la probabilité qu'un étudiant ayant obtenu 45 au premier examen, et 85 au deuxième, soit admis"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Vous devriez avoir une probabilité d'admission de 0.776"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Évaluer l'exactitude (accuracy) des prédictions faites sur les données d'entraînement"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Utilisez votre fonction _predict_ sur les données d'entraînement (X) et récupérez les prédictions dans un vecteur p"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 350,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.8096747868500953"
+      ]
+     },
+     "execution_count": 350,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "p = predict([1, 45, 85], theta)\n",
+    "p"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Calculez le pourcentage des éléments de p qui correspondent à ceux de y. Ça vous donne le score d'exactitude"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 360,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9"
+      ]
+     },
+     "execution_count": 360,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "exactitude = y - predict(X, theta)\n",
+    "ex = np.around(exactitude)\n",
+    "ex = np.abs(ex)\n",
+    "score = (100 - np.sum(ex))/100\n",
+    "score"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Vous devriez avoir un score d'environ 89.0 %"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## BONUS: Visualisez la frontière de décision (decision boundary) sur le graphe"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Pour ceux qui veulent découvrir Matplotlib, il faut ici afficher les données en deux nuages de points distincts (pour les deux classes) sur le même graphe, et aussi trouver une façon de tracer la fonction qui définit la frontière de décision. Amusez-vous bien, et surtout aidez-vous! Ça devrait donner un truc du genre:  \n",
+    "<img src=\"figure-2.png\">"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "\n",
+    "\n",
+    "\n",
+    "\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
