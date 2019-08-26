@@ -10,95 +10,113 @@ import math
 from scipy import log,exp,sqrt,stats
 from tqdm import tqdm
 
+######################################################################
+
+# ###                           PREPARE DATAS
+
+#####################################################################
+
 #data = pd.read_csv("resources/dataset_train.csv")
-data = pd.read_csv("resources/dataset_test.csv")
-data.head(10)
-data.mean()
-data_clean = data.fillna(data.mean())
-data_clean
-
-def sigmoid(z):
-    # VERSION NUMPY
-    #return 1/(1 + np.exp(-z))
-    # VERSION SCIPY
-    return 1/(1 + exp(-z))
-
-# #####################################################################
-# # #### Calcul probabilite
-# ######################################################################
-
-# probability_Gry = sigmoid(np.dot(X, theta_Gry))
-# print(probability_Gry.shape)
-# #print(set(probability_Gry))
-
-# probability_Huf = sigmoid(np.dot(X, theta_Huf))
-# print(probability_Huf.shape)
-# #print(set(probability_Huf))
-
-# probability_Rav = sigmoid(np.dot(X, theta_Rav))
-# print(probability_Rav.shape)
-# #print(set(probability_Rav))
-
-# probability_Sly = sigmoid(np.dot(X, theta_Sly))
-# print(probability_Sly.shape)
-# #print(set(probability_Sly))
-
-# #####################################################################
-# # #### Classification 1 vs 0
-# #####################################################################
-
-
-# classifier_Gry = [1 if a > 0.5 else 0 for a in probability_Gry]
-# print(sum(classifier_Gry))
-
-# classifier_Huf = [1 if a > 0.5 else 0 for a in probability_Huf]
-# print(sum(classifier_Huf))
-
-# classifier_Rav = [1 if a > 0.5 else 0 for a in probability_Rav]
-# print(sum(classifier_Rav))
-
-
-# classifier_Sly = [1 if a > 0.5 else 0 for a in probability_Sly]
-# print(sum(classifier_Sly))
-
-
-
-# a = 322+536+446+296
-# a
-
-# #####################################################################
-# # ### One vs all training
-# #####################################################################
-
-
-# coeficients = []
-
-# costs = []
-# for c in range(0, 4):
-#     theta = np.zeros(15)
-#     theta, J_history = fit(X, Y[c], theta, 0.05547, 40000)
-#     print(theta[0:20])
-#     coeficients.append(theta)
-#     costs.append(J_history)
-#     #classifiers[c, :] , costs[c, :] = fit(X[:,0:15], y_Gry, theta[0:15], 0.05547, 200000)
-
-
-
-# #for J_history in costs :
-# visualize_cost(costs[3])
-# pprint(coeficients)
-# coeficients = np.array(coeficients)
-# print(coeficients.shape)
-
+data_test = pd.read_csv("resources/dataset_test.csv")
+data_test.head(10)
+print(data_test.mean())
 
 ######################################################################
-# ###                           PREDICT
+# ### Data cleaining - replace nulls by mean
 #####################################################################
 
+data_clean = data_test.fillna(data_test.mean())
+print(data_clean.head(20))
 
+######################################################################
+# ### Liste des variables
 #####################################################################
-# ### One vs all Predict
+
+column_names_list = list(data_clean.columns)
+print(column_names_list)
+
+######################################################################
+# ### Definir m
+######################################################################
+
+m = data_clean['Index'].shape[0]
+print("m = ", m)
+type(m)
+
+######################################################################
+# ### Normalize numerical variables (6-19 column)
+######################################################################
+
+# #### Normalize with pandas pour plusieures features a la fois
+
+df = data_clean[column_names_list[6:19]]
+data_norm = (df - df.mean()) / (df.max() - df.min())
+print(data_norm.head(20))
+
+######################################################################
+# ### Definir X 
+######################################################################
+
+# Add a column of ones in X
+X0 = np.ones(m)
+X0[:10]
+X0.shape
+
+X1 = list(data_clean['Best Hand'])
+set(X1)
+
+X1 = [0.0 if el == 'Left' else 1.0 for el in X1 ]
+X1 = np.array(X1)
+X1[:10]
+set(X1)
+
+#X2_15 = data_clean[column_names_list[6:19]]
+X2_15 = data_norm
+X2_15[:10]
+
+#X2_15 = np.array(data_clean[column_names_list[6:19]])
+X2_15 = np.array(data_norm)
+X2_15[:10]
+
+set(X2_15[:,1])
+
+X = np.c_[X0, X1, X2_15]
+
+######################################################################
+# ### Definir Y
+######################################################################
+
+y_raw = list(data_raw['Hogwarts House'])
+s = set(y_raw)
+print("Houses are: ", s)
+
+# recode one vs all with a loop
+Y = []
+for name in s :  
+    Y.append([1.0 if el == name else 0.0 for el in y_raw ])
+Y = np.array(Y)
+print("Y : ", Y)
+print("Y shape : ", Y.shape)
+print("Y de zero : ", Y[0])
+
+######################################################################
+# ###   Load theta training results
 #####################################################################
+theta_Gry = [-3.9722245,  0.6466751, -4.38681363, 1.08499541, -6.33317829, -0.94957602,
+  4.8350571 , 0.09037308, 4.57397408, -2.65027486, -3.73571991, -0.94770564,
+  0.55564161, -0.72931256,  4.76197122]
+
+theta_Huf = [-2.43380345,  0.12385705,  2.00508575, 5.12481853,  7.13518874, -5.86562983,
+  1.99679449, -4.89929829, -6.45421237,  3.48320727,  1.99878244, -1.27843303,
+ -0.23649972,  0.06063479, -2.7376722, ]
+
+theta_Rav = [-2.52263809, -0.20594758,  1.75358726, -3.42685654,  3.43223144,  3.3144334,
+  1.19111064,  4.238581,    4.62289409,  0.28998038, -0.77526696, -0.1024706,
+  0.4070898,   4.83535708,  0.74307937]
+
+theta_Sly = [-3.66138804, -0.35445388,  0.15595263, -3.46998332, -2.94613117,  3.87244453,
+ -6.90906571, -1.59053254, -3.17071882, -0.23835901,  3.85240142,  2.99487082,
+ -0.94066588, -3.66170159, -2.50883135]
 
 coeficients = np.array(
 [-2.26799935,  0.0992041 ,  1.05650397,  5.44707833,  5.8868473 ,
@@ -118,6 +136,27 @@ pprint(coeficients)
 coeficients = np.array(coeficients)
 print(coeficients.shape)
 
+#####################################################################
+# ### Define logarithmic function
+#####################################################################
+
+def sigmoid(z):
+    # VERSION NUMPY
+    #return 1/(1 + np.exp(-z))
+    # VERSION SCIPY
+    return 1/(1 + exp(-z))
+
+
+#####################################################################
+
+####                    ONE VS ALL PREDICT                       ####
+
+#####################################################################
+
+
+#####################################################################
+# #### Calculate probabilities for all Houses
+#####################################################################
 
 probability = sigmoid(np.dot(X, coeficients[0]))
 pprint(probability.shape)
@@ -137,50 +176,50 @@ classProbabilities.shape
 print(classProbabilities[1].shape)
 
 #####################################################################
-# #### Classifier avec une boucle
+# #### Classifier 1 : Find  best class with a loop
 #####################################################################
 
-Classifiers = []
+Classifiers1 = []
 for i in range (0,4):
     classifier = [1 if a > 0.5 else 0 for a in classProbabilities[i]]
     pprint(set(classifier))
     pprint(sum(classifier))
-    Classifiers.append(classifier)
+    Classifiers1.append(classifier)
 
-Classifiers = np.array(Classifiers)
-sum(sum(Classifiers))
+Classifiers1 = np.array(Classifiers1)
+sum(sum(Classifiers1))
 
 
-print(Classifiers.shape)
-predictions = []
-for raw in Classifiers.T :
+print(Classifiers1.shape)
+predictions1 = []
+for raw in Classifiers1.T :
     for index, classe in enumerate(raw) :
         if classe == 1 :
-            predictions.append(index)
-print(np.array(predictions).shape)
-print(set(predictions))
+            predictions1.append(index)
+print(np.array(predictions1).shape)
+print(set(predictions1))
 
 
-predictions = np.array(predictions)
-print(predictions.shape)
-print(predictions[0:200])
+predictions1 = np.array(predictions1)
+print(predictions1.shape)
+print(predictions1[0:200])
 
 #####################################################################
-# #### Classifier avec une sum de matrice
+# #### Classifier 2 : Find  best class with sum of matrix
 #####################################################################
 
 
-Classifiers = []
+Classifiers2 = []
 for i in range (0,4):
     classifier = [(i+1) if a > 0.5 else 0 for a in classProbabilities[i]]
     pprint(set(classifier))
-    Classifiers.append(classifier)
-Classifiers = np.array(Classifiers)
-print(sum(Classifiers))
-print(sum(sum(Classifiers)))
-predictions = sum(Classifiers)-1
+    Classifiers2.append(classifier)
+Classifiers2 = np.array(Classifiers2)
+print(sum(Classifiers2))
+print(sum(sum(Classifiers2)))
+predictions2 = sum(Classifiers2)-1
 
-predictions = np.array(predictions)
-print(predictions.shape)
-print(predictions[0:200])
+predictions2 = np.array(predictions2)
+print(predictions2.shape)
+print(predictions2[0:200])
 
