@@ -6,25 +6,50 @@
 import numpy as np
 import pandas as pd
 from pprint import pprint
-import math
-from scipy import log,exp,sqrt,stats
-from tqdm import tqdm
+
 
 ######################################################################
+# ### Math functions
+######################################################################
 
-# ###                           PREPARE DATAS
+def sigmoid(z):
+    return 1/(1 + np.exp(-z))
 
-#####################################################################
+# test sigmoid
+print("sigmoid de -10 ", sigmoid(-10))
 
-#data = pd.read_csv("resources/dataset_train.csv")
+# normalize pour un feature
+def centrer_reduire_feature (X):
+    stdev = np.std(X)
+    mean = np.mean(X)
+    if stdev != 0:
+        A = []
+        for x in X :
+            a = float((x - mean)/stdev)
+            A.append(a)
+        return np.array(A), stdev, mean
+    else : 
+        return X, stdev, mean
+
+# normalize pour plusieures features a la fois
+def centrer_reduire_matrix(XXX):
+    mean = np.mean(XXX,axis=0)
+    stdev = np.std(XXX,axis=0)
+    XXX = (XXX - mean)/stdev
+    return XXX, mean, stdev
+
+######################################################################
+# ### Load data
+######################################################################
+
+print("loading test data")
 data_test = pd.read_csv("resources/dataset_test.csv")
-data_test.head(10)
-print(data_test.mean())
+print("data test loaded :\n", data_test.head(10))
 
 ######################################################################
 # ### Data cleaining - replace nulls by mean
 #####################################################################
-
+print("cleaning test data : replace missing values by mean")
 data_clean = data_test.fillna(data_test.mean())
 print(data_clean.head(20))
 
@@ -33,15 +58,14 @@ print(data_clean.head(20))
 #####################################################################
 
 column_names_list = list(data_clean.columns)
-print(column_names_list)
+print("Found column names :\n", column_names_list)
 
 ######################################################################
 # ### Definir m
 ######################################################################
 
 m = data_clean['Index'].shape[0]
-print("m = ", m)
-type(m)
+print("Found sample size for test data : ", m, type(m))
 
 ######################################################################
 # ### Normalize numerical variables (6-19 column)
@@ -51,12 +75,12 @@ type(m)
 
 df = data_clean[column_names_list[6:19]]
 data_norm = (df - df.mean()) / (df.max() - df.min())
-print(data_norm.head(20))
+print("Data normalized with pandas :\n", data_norm.head(20))
 
 ######################################################################
 # ### Definir X 
 ######################################################################
-
+print("Define X")
 # Add a column of ones in X
 X0 = np.ones(m)
 X0[:10]
