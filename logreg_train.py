@@ -132,7 +132,7 @@ print("Taking texte variable Hogward House")
 y_texte = list(data_clean['Hogwarts House'])
 print("Dimensions of y_texte : ", np.array(y_texte).shape)
 print("y_texte sample : \n", y_texte[0:10])
-s = set(y_texte)
+s = list(set(y_texte))
 print("4 Houses are: ", s)
 print("Converting one Hogwarts House texte column to 4 binary columns")
 y_Gry = np.array([1.0 if el == 'Gryffindor' else 0.0 for el in y_texte ])
@@ -163,10 +163,10 @@ print("\nVerify X \n")
 print("X_norm dimensions :", X.shape)
 print("Type of X_norm : ", type(X))
 print("X_norm sample :")
-pd.DataFrame(X).head(5)
-print("premiere colonne de X_norm = X0 \n", X[:,0])
-print("deuxieme colonne de X_norm = X1 Hands: left/right\n", X[:,1])
-print("troisieme colonne de X_norm = X2 Arithmacy\n", X[:,2])
+#pd.DataFrame(X).head(5)
+#print("premiere colonne de X_norm = X0 \n", X[:,0])
+#print("deuxieme colonne de X_norm = X1 Hands: left/right\n", X[:,1])
+#print("troisieme colonne de X_norm = X2 Arithmacy\n", X[:,2])
 
 print("\nVerify Y \n")
 print("Y sample : \n", Y[0:10])
@@ -236,7 +236,7 @@ def cost_log(X, y, theta):
     return cost
 
 
-cost_log(X[:,0:15], y_Gry, theta[0:15])
+#cost_log(X[:,0:15], y_Gry, theta[0:15])
 
 def predict(X, theta):
       return(sigmoid(np.dot(X, theta)))
@@ -246,7 +246,7 @@ def cost(X, y, theta):
     return((-1 / X.shape[0]) * np.sum(y * np.log(predict(X, theta)) + (1 - y) * np.log(1 - predict(X, theta))))
 
 
-cost(X[:,0:15], y_Gry, theta[0:15])
+#cost(X[:,0:15], y_Gry, theta[0:15])
 
 ######################################################################
 # ### Funtions FIT with cost and visualize Cost
@@ -360,22 +360,6 @@ a
 # ###                    ONE VS ALL TRAINING
 #####################################################################
 
-######################################################################
-# ### Definir Y one vs all
-######################################################################
-
-y_raw = list(data_raw['Hogwarts House'])
-s = set(y_raw)
-print("Houses are: ", s)
-
-# recode one vs all with a loop
-Y = []
-for name in s :  
-    Y.append([1.0 if el == name else 0.0 for el in y_raw ])
-Y = np.array(Y)
-print("Y : ", Y)
-print("Y shape : ", Y.shape)
-print("Y de zero : ", Y[0])
 
 #####################################################################
 # ### One vs all training
@@ -385,17 +369,17 @@ coeficients = []
 costs = []
 for c in range(0, 4):
     theta = np.zeros(15)
-    theta, J_history = fit(X, Y[c], theta, 0.05547, 40000)
-    print(theta[0:20])
+    theta, J_history = fit(X, Y[c], theta, 0.05547, 4000)
+    #print(theta[0:20])
     coeficients.append(theta)
     costs.append(J_history)
-    #classifiers[c, :] , costs[c, :] = fit(X[:,0:15], y_Gry, theta[0:15], 0.05547, 200000)
+    #classifiers[c, :] , costs[c, :] = fit(X[:,0:15], y_Gry, theta[0:15], 0.05547, 2000)
 
 
 
 #for J_history in costs :
 visualize_cost(costs[3])
-pprint(coeficients)
+#pprint(coeficients)
 coeficients = np.array(coeficients)
 print(coeficients.shape)
 
@@ -405,13 +389,12 @@ print(coeficients.shape)
 # #### Calculate probabilities for all Houses
 #####################################################################
 
-
-probability = sigmoid(np.dot(X, coeficients[0]))
-pprint(probability.shape)
-pprint(probability[0:30])
-pprint(set(probability))
-
+#probability = sigmoid(np.dot(X, coeficients[0]))
+#pprint(probability.shape)
+#pprint(probability[0:30])
 #classProbabilities = sigmoid(X * classifiers.T)
+
+
 classProbabilities = []
 for i in range(0,4):
     probability = sigmoid(np.dot(X, coeficients[i]))
@@ -427,46 +410,99 @@ print(classProbabilities[1].shape)
 # #### Classifier 1 : Find  best class with a loop
 #####################################################################
 
-Classifiers1 = []
+ClassifiersB = []
 for i in range (0,4):
     classifier = [1 if a > 0.5 else 0 for a in classProbabilities[i]]
     pprint(set(classifier))
     pprint(sum(classifier))
-    Classifiers1.append(classifier)
+    ClassifiersB.append(classifier)
 
-Classifiers1 = np.array(Classifiers1)
-sum(sum(Classifiers1))
+ClassifiersB = np.array(ClassifiersB)
+print(ClassifiersB.shape)
+sum(sum(ClassifiersB))
 
 
-print(Classifiers1.shape)
-predictions1 = []
-for raw in Classifiers1.T :
+print(ClassifiersB.shape)
+predictionsB = []
+for raw in ClassifiersB.T :
     for index, classe in enumerate(raw) :
         if classe == 1 :
-            predictions1.append(index)
-print(np.array(predictions1).shape)
-print(set(predictions1))
+            predictionsB.append(index)  
+print(np.array(predictionsB).shape)
+print(set(predictionsB))
 
 
-predictions1 = np.array(predictions1)
-print(predictions1.shape)
-print(predictions1[0:200])
+predictionsB = np.array(predictionsB)
+print(predictionsB.shape)
+print(predictionsB[0:200])
 
 #####################################################################
 # #### Classifier 2 : Find  best class with sum of matrix
 #####################################################################
 
 
-Classifiers2 = []
+ClassifiersM = []
 for i in range (0,4):
     classifier = [(i+1) if a > 0.5 else 0 for a in classProbabilities[i]]
     pprint(set(classifier))
-    Classifiers2.append(classifier)
-Classifiers2 = np.array(Classifiers2)
-print(sum(Classifiers2))
-print(sum(sum(Classifiers2)))
-predictions2 = sum(Classifiers2)-1
+    ClassifiersM.append(classifier)
+ClassifiersM = np.array(ClassifiersM)
+print(sum(ClassifiersM))
+print(sum(sum(ClassifiersM)))
+predictionsM = sum(ClassifiersM)-1
 
-predictions2 = np.array(predictions2)
-print(predictions2.shape)
-print(predictions2[0:200])
+predictionsM = np.array(predictionsM)
+print(predictionsM.shape)
+print(predictionsM[0:200])
+#print(predictionsM)
+
+#####################################################################
+# #### Compare two method of calcul prediction (loop and Matrix)
+#####################################################################
+
+check1  = predictionsB - predictionsM[:-1] 
+print(predictionsM.shape)
+print(predictionsM[0:200])
+#print(predictionsM)
+check1  = predictionsB - predictionsM[:-1]
+#print(check1)
+print(sum(check1))
+print(set(check1))
+errors = []
+for index, value in enumerate(check1):
+    if value != 0 :
+        errors.append(index)
+print(len(errors))
+#print(errors)
+error_rate = len(errors)/len(y_texte)
+print("error rate = ", error_rate)
+
+#####################################################################
+# #### Compare results with empirical values
+#####################################################################
+
+y_recoded = y_texte.copy()
+y_recoded = [0 if el == 'Gryffindor' else el for el in y_recoded]
+y_recoded = [1 if el == 'Hufflepuff' else el for el in y_recoded]
+y_recoded = [2 if el == 'Ravenclaw' else el for el in y_recoded]
+y_recoded = [3 if el == 'Slytherin' else el for el in y_recoded]
+
+print(len(y_recoded))
+y_recoded = np.array(y_recoded)
+print(y_recoded.shape)
+#print(y_recoded[0:20])
+
+check2 = predictionsM - y_recoded
+print(check2)
+print(sum(check2))
+print(set(check2))
+errors = []
+for index, value in enumerate(check2):
+    if value != 0 :
+        errors.append(index)
+print(len(errors))
+#print(errors)
+error_rate = len(errors)/len(y_recoded)
+print("error rate = ", error_rate)
+
+switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
