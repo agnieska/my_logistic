@@ -6,6 +6,7 @@
 import numpy as np
 import pandas as pd
 from pprint import pprint
+import json
 
 
 ######################################################################
@@ -37,6 +38,21 @@ def centrer_reduire_matrix(XXX):
     stdev = np.std(XXX,axis=0)
     XXX = (XXX - mean)/stdev
     return XXX, mean, stdev
+
+######################################################################
+# ### Json functions
+######################################################################
+
+def read_json (filename) :
+    with open(filename, encoding='utf-8') as file:
+        data_dict = json.load(file)
+    return data_dict  
+
+def save_json (data_dict, filename) :
+    if not filename :
+        filename = "myjson.json"
+    with open(filename, mode='w', encoding='utf-8') as file:
+        json.dump(data_dict, file)
 
 ######################################################################
 # ### Load data
