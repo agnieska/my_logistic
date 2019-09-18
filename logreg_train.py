@@ -4,10 +4,11 @@
 import numpy as np
 import pandas as pd
 from pprint import pprint
-from tqdm import tqdm
+#from tqdm import tqdm
 import json
 #import matplotlib.pyplot as plt
 print("Import completed")
+
 ######################################################################
 # ### Math functions
 ######################################################################
@@ -90,8 +91,8 @@ def fit(X, y, theta, alpha, num_iters):
     # Initialiser certaines variables utiles
     m = X.shape[0]
     J_history = []
-    for _ in tqdm(range(num_iters)):
-    #for _ in range(num_iters):
+    #for _ in tqdm(range(num_iters)):
+    for _ in range(num_iters):
         #loss = hipothesis_log(X, theta) - y
         #gradient = (alpha / m) * (np.dot(loss, X))
         #theta = theta - gradient
@@ -160,7 +161,7 @@ pd.DataFrame(X2_15).head(6)
 
 print("Normalize numerical variables with center-reduce method")
 X2_15_norm, mean, std = centrer_reduire_matrix(X2_15)
-print("X2-X15 normalised dimensions :", X2_15_norm.shape)
+#print("X2-X15 normalised dimensions :", X2_15_norm.shape)
 print("X2-X15 normalized sample:\n")
 pd.DataFrame(X2_15_norm).head(6)
 
@@ -172,22 +173,22 @@ print("Best Hand text cathegories", set(X1))
 X1 = [0.0 if el == 'Left' else 1.0 for el in X1 ]
 X1 = np.array(X1)
 print("Best Hand converted to binary cathegories", set(X1))
-print("Best Hand dimensions 1600 : ", X1.shape)
+#print("Best Hand dimensions 1600 : ", X1.shape)
 print( "Best Hand sample : ", X1[:10])
 # normalize X1
 X1_norm, mean, std = centrer_reduire_feature (X1)
-print("Best Hand normalized dimensions 1600 : ", X1_norm.shape)
+#print("Best Hand normalized dimensions 1600 : ", X1_norm.shape)
 print("Best Hand normalized sample  : ", X1_norm[:10])
 
 # Adding a column of ones in X
 print("Adding a column of ones as X0")
 X0 = np.ones(m)
-print("X0 shape 1600 : ", X0.shape)
+#print("X0 shape 1600 : ", X0.shape)
 print("X0 sample with ones : ", X0[:10])
 
 print("Concatenate all in one matrix called X_normalized")
 X_norm = np.c_[X0, X1_norm, X2_15_norm]
-print("X_normalized normalised dimensions :", X_norm.shape)
+#print("X_normalized normalised dimensions :", X_norm.shape)
 
 print("X_normalized normalized sample:\n")
 pd.DataFrame(X_norm).head(6)
@@ -195,7 +196,7 @@ pd.DataFrame(X_norm).head(6)
 X = X_norm
 
 ######################################################################
-# ### Definir Y 
+# ### Definir Y :  4 binary columns one vs all
 ######################################################################
 
 print("\n######################################################################")
@@ -214,10 +215,10 @@ y_Gry = np.array([1.0 if el == 'Gryffindor' else 0.0 for el in y_texte ])
 y_Huf = np.array([1.0 if el == 'Hufflepuff' else 0.0 for el in y_texte ])
 y_Rav = np.array([1.0 if el == 'Ravenclaw' else 0.0 for el in y_texte ])
 y_Sly = np.array([1.0 if el == 'Slytherin' else 0.0 for el in y_texte ])
-print("y_Gry, Huf, Rav, Sly samples : \n", y_Gry[0:10],"\n", y_Huf[0:10], "\n", y_Rav[0:10], "\n", y_Sly[0:10])
-print("y_Gry, Huf, Rav, Sly shapes : \n", y_Gry.shape, y_Huf.shape, y_Rav.shape, y_Sly.shape)
+#print("y_Gry, Huf, Rav, Sly samples : \n", y_Gry[0:10],"\n", y_Huf[0:10], "\n", y_Rav[0:10], "\n", y_Sly[0:10])
+#print("y_Gry, Huf, Rav, Sly shapes : \n", y_Gry.shape, y_Huf.shape, y_Rav.shape, y_Sly.shape)
 Y = np.array([y_Gry, y_Huf, y_Rav, y_Sly])
-print("Dimensions of  Y  : ",  Y.shape)
+#print("Dimensions of  Y  : ",  Y.shape)
 print("Y sample : \n", Y[0:10])
 
 print("######################################################################\n")
@@ -227,11 +228,11 @@ Y = []
 for name in house_names :  
     Y.append([1.0 if el == name else 0.0 for el in y_texte ])
 Y = np.array(Y)
-print("2 x dimensions of  Y  : ",  Y.shape)
-print("Single column dimension : ", Y[0].shape)
-print("Y sample : \n", Y[0:10])
+#print("2 x dimensions of  Y  : ",  Y.shape)
+#print("Single column dimension : ", Y[0].shape)
+#print("Y sample : \n", Y[0:10])
 
-
+"""
 #####################################################################
 # ### Verify X, Y
 #####################################################################
@@ -266,6 +267,7 @@ for i in range (0, Y.shape[0]):
 set(l)
 print("Verify l liste des cathegories : ", l)
 
+"""
 
 ######################################################################
 # ### Definir Theta
@@ -278,11 +280,12 @@ print("Definir Theta\n")
 theta = np.zeros(15)
 #theta = np.array([0.1,0.1,0.1,0.1,0.1,0.2,0.3,0.1,0.1,0.2,0.3,0.1,0.1,0.2,0.1])
 print("theta zero :", theta)
-print("theta type, theta shape", type(theta), theta.shape)
+#print("theta type, theta shape", type(theta), theta.shape)
 
 
 
 
+""" 
 ######################################################################
 # ###               ONE BY ONE TRAINING
 ######################################################################
@@ -322,8 +325,6 @@ print("theta for Slytherin House : \n" , theta_Sly)
 print("final cost for Slytherin House = ", J_history_Sly[-1])
 #visualize_cost(J_history_Sly)
 #print("... cost evolution for Slytherin House dispalyed")
-
-
 
 #####################################################################
 # #### Calcul probability Class by Class/House by House
@@ -370,7 +371,7 @@ print("sum of classifiers for Sly= ", sum(classifier_Sly))
 sum_classifiers = sum(classifier_Gry)+sum(classifier_Huf)+sum(classifier_Rav)+sum(classifier_Sly)
 print("check sum of classifiers=1600 ", sum_classifiers)
 
-
+"""
 #####################################################################
 # ###                    ONE VS ALL TRAINING
 #####################################################################
@@ -378,12 +379,13 @@ print("check sum of classifiers=1600 ", sum_classifiers)
 print("\n############################################################")
 print("ONE VS ALL TRAINING \n")
 
+switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
 th_coeficients = []
 costs = []
 for c in range(0, 4):
     theta = np.zeros(15)
     theta, J_history = fit(X, Y[c], theta, 0.05547, 4000)
-    print(theta[0:20])
+    print("theta for ", switcher[c], " : ", theta[0:20])
     th_coeficients.append(theta)
     costs.append(J_history)
     #classifiers[c, :] , costs[c, :] = fit(X[:,0:15], y_Gry, theta[0:15], 0.05547, 2000)
@@ -392,16 +394,16 @@ for c in range(0, 4):
 #visualize_cost(costs[3])
 #pprint(coeficients)
 th_coeficients = np.array(th_coeficients)
-print("check theta coeficients shape=(4,15)", th_coeficients.shape)
+#print("check theta coeficients shape=(4,15)", th_coeficients.shape)
 
 
 
 #####################################################################
-# #### Calculate probabilities for all Houses
+# #### Calculate probabilities for all Houses and all Students
 #####################################################################
 
 print("\n############################################################")
-print("Calculate probabilities for all 4 classes (Houses) \n")
+print("Calculate probabilities for all 4 classes (Houses) and all students \n")
 
 #probability = sigmoid(np.dot(X, coeficients[0]))
 #pprint(probability.shape)
@@ -411,17 +413,18 @@ print("Calculate probabilities for all 4 classes (Houses) \n")
 classProbabilities = []
 for i in range(0,4):
     probability = sigmoid(np.dot(X, th_coeficients[i]))
-    print(i+1, " class/House probability shape check=1600 ", probability.shape)
-    print(i+1, " class/House probability examples :\n", probability[0:30])
+    #print(i+1, " class/House probability shape check=1600 ", probability.shape)
+    #print(i+1, " class/House probability examples :\n", probability[0:30])
     classProbabilities.append(probability)
 
 classProbabilities = np.array(classProbabilities)
-print("4 Class/Houses probability np.array shape : ", classProbabilities.shape)
-print("4 Class/Houses probability column shape : ", classProbabilities[1].shape)
+#print("4 Class/Houses probability np.array shape : ", classProbabilities.shape)
+#print("4 Class/Houses probability column shape : ", classProbabilities[1].shape)
 
 
 
 
+""" 
 #####################################################################
 # #### Classification 1 : Find  best class with a loop
 #####################################################################
@@ -451,6 +454,7 @@ print(" Set of values predicted with Loop : ", set(predictionsB))
 predictionsB = np.array(predictionsB)
 print("Prdictions with Loop length = ", predictionsB.shape)
 print("Prediction with Loop values example : ", predictionsB[0:30])
+"""
 
 #####################################################################
 # #### Classification 2 : Find  best class with sum of matrix
@@ -463,20 +467,21 @@ for i in range (0,4):
     pprint(set(classifier))
     ClassifiersM.append(classifier)
 ClassifiersM = np.array(ClassifiersM)
-print("Classifier with Matrix lenght = ", ClassifiersM.shape)
-print("Classifier with Matrix SUM by column = ", sum(ClassifiersM))
-print("Classifier with Matrix SUM total = ", sum(sum(ClassifiersM)))
+#print("Classifier with Matrix lenght = ", ClassifiersM.shape)
+#print("Classifier with Matrix SUM by column = ", sum(ClassifiersM))
+#print("Classifier with Matrix SUM total = ", sum(sum(ClassifiersM)))
 
 print("\n#####################################################################")
 print("Predicting with sum of matrix\n")
 predictionsM = sum(ClassifiersM)-1
-print(" Set of values predicted with Matrix : ", set(predictionsM))
+#print(" Set of values predicted with Matrix : ", set(predictionsM))
 predictionsM = np.array(predictionsM)
-print("Predictions with Matrix length ", predictionsM.shape)
-print("Prediction with Matrix values example ", predictionsM[0:30])
+#print("Predictions with Matrix length ", predictionsM.shape)
+#print("Prediction with Matrix values example ", predictionsM[0:30])
 
+"""
 #####################################################################
-# #### Recode Empirical results
+# #### Recode Empirical text values into numerical values
 #####################################################################
 print("\n#####################################################################")
 print("\nRecode Empirical text values into numerical values \n")
@@ -491,7 +496,23 @@ y_recoded = np.array(y_recoded)
 print("Recoded empirical values ", y_recoded[0:30])
 print("Recoded list length ", y_recoded.shape)
 
+"""
+#####################################################################
+# #### Recode learned numerical predictions into text values
+#####################################################################
 
+print("\n#####################################################################")
+print("\nRecode learned numerical predictions into text values \n")
+
+switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
+predictions_temp = predictionsM.copy()
+predictions_texte = predictionsM.copy()
+for i in range (0,4) :
+    predictions_texte = np.where(predictions_temp==i, switcher[i], predictions_texte)
+predictions_texte = list(predictions_texte)
+set(predictions_texte)
+
+""" 
 #####################################################################
 # #### Compare two methods of calcul prediction (loop and Matrix)
 #####################################################################
@@ -510,14 +531,19 @@ for index, value in enumerate(check1):
 print("len errors = " , len(errors))
 print("errors indexes : ", errors)
 error_rate = len(errors)/len(predictionsB)
-print("error rate ", error_rate)
+print("error rate ", error_rate) 
+
+"""
 
 #####################################################################
-# #### Compare validation results with empirical results
+# #### Compare learning results with empirical results
 #####################################################################
 print("\n#####################################################################")
 print("\nCompare validation results with empirical results \n")
 
+print("empirical results : ", y_texte[:100])
+print("learned results ", predictions_texte[:100])
+"""
 print("\nMatrix vs Empirical")
 check2 = predictionsM - y_recoded
 print("number of differences calculated in check2=1600 " , len(check2))
@@ -546,6 +572,16 @@ for index, value in enumerate(check3):
 print("number of errors cases = " , len(errors))
 print("errors indexes : ", errors)
 error_rate = len(errors)/len(predictionsB)
-print("error rate boucle ", error_rate)
+print("error rate boucle ", error_rate) 
+"""
 
-switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
+errors = []
+for i in range (0, len(y_texte)) :
+    if y_texte[i] != predictions_texte[i] :
+        errors.append(i)
+print("PREDICTIONS AFTER LEARNING : \n")
+print("good predictions for ", len(y_texte)-len(errors), " students")
+print("wrong predictions for ", len(errors), " students")
+error_rate = len(errors)/len(y_texte)
+print("error rate = ", error_rate)
+print("students witch wrong prediction :", errors)
