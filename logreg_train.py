@@ -1,13 +1,13 @@
 
 # coding: utf-8
-
+import sys
 import numpy as np
 import pandas as pd
 from pprint import pprint
 #from tqdm import tqdm
 import json
 #import matplotlib.pyplot as plt
-print("Import completed")
+print("\nRESULT: Import completed")
 
 ######################################################################
 # ### Math functions
@@ -15,9 +15,6 @@ print("Import completed")
 
 def sigmoid(z):
     return 1/(1 + np.exp(-z))
-
-# test sigmoid
-print("sigmoid de -10 ", sigmoid(-10))
 
 # normalize pour un feature
 def centrer_reduire_feature (X):
@@ -60,7 +57,10 @@ def save_json (data_dict, filename) :
 
 def hipothesis_log(X, theta):  
     return (sigmoid(np.dot(X, theta)))
-    # returns a 100 x 1 matrix
+
+def predict(X, theta):  
+    return (sigmoid(np.dot(X, theta)))
+
 
 ######################################################################
 # ### la fonction du cout logistique
@@ -77,511 +77,266 @@ def cost_log(X, y, theta):
     cost =  (-1/m) * (np.sum(loss)) 
     return cost
 
-def predict(X, theta):
-      return(sigmoid(np.dot(X, theta)))
-
-def cost(X, y, theta):
-    return((-1 / X.shape[0]) * np.sum(y * np.log(predict(X, theta)) + (1 - y) * np.log(1 - predict(X, theta))))
 
 ######################################################################
-# ### Funtions FIT with cost and visualize Cost
+# ### Funtions FIT with cost 
 ######################################################################
 
 def fit(X, y, theta, alpha, num_iters):
-    # Initialiser certaines variables utiles
+    # m : nombre d'enregistrements 
     m = X.shape[0]
     J_history = []
     #for _ in tqdm(range(num_iters)):
     for _ in range(num_iters):
         #loss = hipothesis_log(X, theta) - y
-        #gradient = (alpha / m) * (np.dot(loss, X))
+        #gradient = (alpha / m) * np.dot(loss, X))
         #theta = theta - gradient
         theta = theta - (alpha/m) * np.dot((predict(X, theta) - y), X)
         cost = cost_log(X, y, theta)
         J_history.append(cost)
-        #J_history.append(cost(X, y, theta))
     return theta, J_history
 
-def visualize_cost(J_history) :
-    ax = plt.axes()
-    ax.plot(J_history)
 
 
-######################################################################
-# ### Load data
-######################################################################
+### Loading
+###########################################################################################################################
+print("\n##################################################################################################################")
+print("\n                               LOAD AND CLEAN DATA ")
+print("\n##################################################################################################################")
+print("\n...loading train data")
+try :
+        data_raw = pd.read_csv("resources/dataset_train.csv")
+        print(data_raw.head(5))
+except :
+        print("         ERROR: File with train data not found")
+        sys.exit()
 
-print("loading train data")
-data_raw = pd.read_csv("resources/dataset_train.csv")
-#print("raw data loaded : \n", data_raw.head(10))
 
-#####################################################################
-# ### Data cleaining - replace nulls by mean
-#####################################################################
+# ### Definir les dimensions du dataset n: nombre de colonnes, m - nombre d'enregistrements, liste des variables
+##########################################################################################################################
+print("\n\n\n...analysing data ")
+try :
+        m = data_raw['Index'].shape[0]
+        print("         RESULT: Sample size : ", m)
+        n = data_raw.shape[1]
+        print("                 Number of columns : ", n)
+        #assert(m>100)
+        #assert(n>3)
+except:
+        print("         ERROR: Dataset dimensions to small or impossible to find")
+        sys.exit()
+try :
+        column_names_list = list(data_raw.columns)
+        print("                 Column names are :\n", column_names_list)
+except :
+        print("         ERROR: Impossible to find column names in this dataset")
+        sys.exit()
 
-print("cleaning data : replace missing values by mean")
-data_clean = data_raw.fillna(data_raw.mean())
-#print("data cleanned : \n", data_clean.head(10))
 
-#####################################################################
-# ### Liste des variables
-#####################################################################
 
-column_names_list = list(data_clean.columns)
-print("Found column names :\n", column_names_list)
+### Cleaning
+############################################################################################################################
+print("\n\n\n...cleaning data : replacing missing values by mean")
+try : 
+        data_clean = data_raw.fillna(data_raw.mean())
+        print(data_clean.head(5))
+except :
+        print("         ERROR: Replacing missing values by mean failed")
+        sys.exit()
 
-######################################################################
-# ### Definir m
-######################################################################
 
-m = data_clean['Index'].shape[0]
-print("Found sample size for train data : ", m, type(m))
 
-######################################################################
-# ### Normalize numerical variables (6-19 column)
-######################################################################
+####  Define X
+############################################################################################################################
+print("\n\n#################################################################################################################")
+print("\n                        DEFINE COLUMNS TO ANALYSE AND LEARN ( X ) ")
+print("\n###################################################################################################################")
 
-# #### Normalize with pandas pour plusieures features a la fois
-df = data_clean[column_names_list[6:19]]
-data_norm = (df - df.mean()) / (df.max() - df.min())
-#print("Data normalized with pandas :\n", data_norm.head(10))
 
-######################################################################
-# ### Definir X 
-######################################################################
 
-print("\n######################################################################")
-print("Define and Normalize X (columns to analyse in order to find factors\n")
-
-# Taking numerical variables 
-print("Taking numerical variables : col_6 Arithmancy to col_19 Flying")
+#### Extract numerical
+############################################################################################################################
+print("\n...Taking numerical variables : col_6 Arithmancy to col_19 Flying")
 X2_15 = np.array(data_clean[column_names_list[6:19]])
-print("X2-X15 sample:\n")
-pd.DataFrame(X2_15).head(6)
+print("         RESULT: Numerical variables converted to matrix with dimensions", X2_15.shape, ":\n")
+print(pd.DataFrame(np.around(X2_15, decimals=2)).head(5))
 
-print("Normalize numerical variables with center-reduce method")
+
+
+#### Normalize
+############################################################################################################################
+print("\n\n\n...Normalizing numerical variables with center-reduce method")
 X2_15_norm, mean, std = centrer_reduire_matrix(X2_15)
-#print("X2-X15 normalised dimensions :", X2_15_norm.shape)
-print("X2-X15 normalized sample:\n")
-pd.DataFrame(X2_15_norm).head(6)
+print("         RESULT: Normalized numerical variables with dimensions", X2_15_norm.shape, ":\n")
+print(pd.DataFrame(np.around(X2_15_norm, decimals=2)).head(5))
 
-#Take text column Best Hand 
-print("Take text column Best Hand")
+
+
+#### Text Column "Best Hand"
+############################################################################################################################ 
+print("\n\n\n...Adding text column 'Best Hand'")
 X1 = list(data_clean['Best Hand'])
-print("Best Hand text cathegories", set(X1))
+print("         RESULT: Found Best Hand text cathegories", set(X1))
 # convertir X1 en binaire
 X1 = [0.0 if el == 'Left' else 1.0 for el in X1 ]
 X1 = np.array(X1)
-print("Best Hand converted to binary cathegories", set(X1))
-#print("Best Hand dimensions 1600 : ", X1.shape)
-print( "Best Hand sample : ", X1[:10])
-# normalize X1
+print("         RESULT: Best Hand converted to binary cathegories", set(X1))
+print("         RESULT: Best Hand sample : ", X1)
 X1_norm, mean, std = centrer_reduire_feature (X1)
-#print("Best Hand normalized dimensions 1600 : ", X1_norm.shape)
-print("Best Hand normalized sample  : ", X1_norm[:10])
+print("         RESULT: Best Hand normalized sample  : ", np.around(X1_norm, decimals=2))
 
-# Adding a column of ones in X
-print("Adding a column of ones as X0")
+
+
+#### Column for X0
+############################################################################################################################
+
+print("\n\n\n...Adding a column of ones as X0")
 X0 = np.ones(m)
 #print("X0 shape 1600 : ", X0.shape)
-print("X0 sample with ones : ", X0[:10])
+print("         RESULT: X0  with ones : ", X0)
 
-print("Concatenate all in one matrix called X_normalized")
+
+
+#### Concatenate all
+############################################################################################################################
+print("\n\n\n...Concatenating all in one matrix ")
 X_norm = np.c_[X0, X1_norm, X2_15_norm]
-#print("X_normalized normalised dimensions :", X_norm.shape)
-
-print("X_normalized normalized sample:\n")
-pd.DataFrame(X_norm).head(6)
-
+print("         RESULT : Final X matrix with dimensions :", X_norm.shape ,":\n")
+print(pd.DataFrame(np.around(X_norm, decimals=2)).head(7))
 X = X_norm
 
-######################################################################
-# ### Definir Y :  4 binary columns one vs all
-######################################################################
 
-print("\n######################################################################")
-print("DEFINING Y  (column to learn and predict) \n")
 
-print("....Defining Y one by one")
-print("Taking texte variable Hogward House")
+#### Define Y
+#########################################################################################################################
+print("\n########################################################################################################################")
+print("\n                                DEFINE COLUMN TO PREDICT ( Y ) ")
+print("\n########################################################################################################################")
+
+
+#### Anayse Hogward House
+#########################################################################################################################
+print("\n...Analysing texte variable Hogward House")
 y_texte = list(data_clean['Hogwarts House'])
-print("Dimensions of y_texte : ", np.array(y_texte).shape)
-print("y_texte sample : \n", y_texte[0:10])
+print("         RESULT : Number of students classified to Hogward House : ", np.array(y_texte).shape[0])
 house_names = list(set(y_texte))
 house_names.sort()
-print("4 Houses are: ", house_names)
-print("Converting one Hogwarts House texte column to 4 binary columns")
-y_Gry = np.array([1.0 if el == 'Gryffindor' else 0.0 for el in y_texte ])
-y_Huf = np.array([1.0 if el == 'Hufflepuff' else 0.0 for el in y_texte ])
-y_Rav = np.array([1.0 if el == 'Ravenclaw' else 0.0 for el in y_texte ])
-y_Sly = np.array([1.0 if el == 'Slytherin' else 0.0 for el in y_texte ])
-#print("y_Gry, Huf, Rav, Sly samples : \n", y_Gry[0:10],"\n", y_Huf[0:10], "\n", y_Rav[0:10], "\n", y_Sly[0:10])
-#print("y_Gry, Huf, Rav, Sly shapes : \n", y_Gry.shape, y_Huf.shape, y_Rav.shape, y_Sly.shape)
-Y = np.array([y_Gry, y_Huf, y_Rav, y_Sly])
-#print("Dimensions of  Y  : ",  Y.shape)
-print("Y sample : \n", Y[0:10])
+print("         RESULT : Hogward House 4 unique values are: ", house_names)
 
-print("######################################################################\n")
-print("Defining Y with a loop\n")
 
+
+####  Converting Hogward House to  np.array Y 
+#########################################################################################################################
+print("\n... Converting one Hogwarts House texte column to 4 binary columns")
 Y = []
-for name in house_names :  
-    Y.append([1.0 if el == name else 0.0 for el in y_texte ])
+for name in house_names : 
+        house_binary = [1 if element == name else 0 for element in y_texte ] 
+        Y.append(house_binary)
 Y = np.array(Y)
-#print("2 x dimensions of  Y  : ",  Y.shape)
-#print("Single column dimension : ", Y[0].shape)
-#print("Y sample : \n", Y[0:10])
-
-"""
-#####################################################################
-# ### Verify X, Y
-#####################################################################
-
-print("\n######################################################################")
-print("Verify X \n")
-
-print("X_norm dimensions :", X.shape)
-print("Type of X_norm : ", type(X))
-print("X_norm sample :")
-#pd.DataFrame(X).head(5)
-#print("premiere colonne de X_norm = X0 \n", X[:,0])
-#print("deuxieme colonne de X_norm = X1 Hands: left/right\n", X[:,1])
-#print("troisieme colonne de X_norm = X2 Arithmacy\n", X[:,2])
-
-print("\n######################################################################")
-print("Verify Y \n")
-
-print("Y sample : \n", Y[0:10])
-print("Dimensions of y_texte and  Y  : ", np.array(y_texte).shape, Y.shape)
-print("Type of y_texte and Y : ", type(y_texte), type(Y))
-
-#####################################################################
-# ### Verify l
-#####################################################################
-
-print("\n######################################################################")
-
-l =[]
-for i in range (0, Y.shape[0]):
-  l.append(sum(Y[0]))
-set(l)
-print("Verify l liste des cathegories : ", l)
-
-"""
-
-######################################################################
-# ### Definir Theta
-######################################################################
-
-print("\n######################################################################")
-print("Definir Theta\n")
+print("         RESULT: 4 binary columns for Hougward House are : \n", pd.DataFrame(Y).transpose().head(7))
 
 
-theta = np.zeros(15)
-#theta = np.array([0.1,0.1,0.1,0.1,0.1,0.2,0.3,0.1,0.1,0.2,0.3,0.1,0.1,0.2,0.1])
-print("theta zero :", theta)
-#print("theta type, theta shape", type(theta), theta.shape)
-
-
-
-
-""" 
-######################################################################
-# ###               ONE BY ONE TRAINING
-######################################################################
-
-print("\n#####################################################################")
-print("ONE BY ONE TRAINING\n")
-
-
-# learn the Gryffindor House theta parameters  
-theta = np.zeros(15)
-theta_Gry, J_history_Gry = fit(X, y_Gry, theta, 0.05547, 4000)
-print("learned theta for Gryffindor House : \n", theta_Gry)
-print("final cost for Gryffindor House = ", J_history_Gry[-1])
-#visualize_cost(J_history_Gry)
-#print("... cost evolution for Gryffindor House dispalyed")
-
-# learn the Hufflepuf House theta parameters  
-theta = np.zeros(15)
-theta_Huf, J_history_Huf = fit(X, y_Huf, theta, 0.05547, 4000)
-print("learned theta for Hufflepuf House : \n", theta_Huf)
-print("final cost for Hufflepuf House = ", J_history_Huf[-1])
-#visualize_cost(J_history_Huf)
-#print("... cost evolution for Hufflepuf House dispalyed")
-
-# learn the Ravenclaw House theta parameters  
-theta = np.zeros(15)
-theta_Rav, J_history_Rav = fit(X, y_Rav, theta, 0.05547, 4000)
-print("theta for Ravenclaw House : \n" , theta_Rav)
-print("final cost for Ravenclaw House = ", J_history_Rav[-1])
-#visualize_cost(J_history_Rav)
-#print("... cost evolution for Ravenclaw House dispalyed")
-
-# learn the Slytherin House theta parameters  
-theta = np.zeros(15)
-theta_Sly, J_history_Sly = fit(X, y_Sly, theta, 0.05547, 4000)
-print("theta for Slytherin House : \n" , theta_Sly)
-print("final cost for Slytherin House = ", J_history_Sly[-1])
-#visualize_cost(J_history_Sly)
-#print("... cost evolution for Slytherin House dispalyed")
-
-#####################################################################
-# #### Calcul probability Class by Class/House by House
-######################################################################
-
-print("\n#####################################################################")
-print("Calcul probability Class by Class/House by House for all 4 houses\n")
-
-probability_Gry = sigmoid(np.dot(X, theta_Gry))
-print("check the probability_Gry shape = 1600 ", probability_Gry.shape)
-#print(set(probability_Gry))
-
-probability_Huf = sigmoid(np.dot(X, theta_Huf))
-print("check the probability_Huf shape = 1600 ", probability_Huf.shape)
-#print(set(probability_Huf))
-
-probability_Rav = sigmoid(np.dot(X, theta_Rav))
-print("check the probability_Rav shape = 1600 ", probability_Rav.shape)
-#print(set(probability_Rav))
-
-probability_Sly = sigmoid(np.dot(X, theta_Sly))
-print("check the probability_Sly shape = 1600 ", probability_Sly.shape)
-#print(set(probability_Sly))
-
-#####################################################################
-# #### Classification Class by Class/House by House
-#####################################################################
-
-print("\n#####################################################################")
-print("Classification Class by class/House by house : 1 if class probability > 0.4 else 0 \n")
-
-classifier_Gry = [1 if a > 0.4 else 0 for a in probability_Gry]
-print("sum of classifiers for Gry= ", sum(classifier_Gry))
-
-classifier_Huf = [1 if a > 0.4 else 0 for a in probability_Huf]
-print("sum of classifiers for Huf= ", sum(classifier_Huf))
-
-classifier_Rav = [1 if a > 0.4 else 0 for a in probability_Rav]
-print("sum of classifiers for Rav= ", sum(classifier_Rav))
-
-classifier_Sly = [1 if a > 0.4 else 0 for a in probability_Sly]
-print("sum of classifiers for Sly= ", sum(classifier_Sly))
-
-sum_classifiers = sum(classifier_Gry)+sum(classifier_Huf)+sum(classifier_Rav)+sum(classifier_Sly)
-print("check sum of classifiers=1600 ", sum_classifiers)
-
-"""
-#####################################################################
-# ###                    ONE VS ALL TRAINING
-#####################################################################
-
-print("\n############################################################")
-print("ONE VS ALL TRAINING \n")
+#### Trainig
+####################################################################################################################
+print("\n######################################################################################################################")
+print("\n                                         ONE VS ALL TRAINING"                          )
+print("\n######################################################################################################################")
 
 switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
-th_coeficients = []
+theta_matrix = []
 costs = []
 for c in range(0, 4):
-    theta = np.zeros(15)
-    theta, J_history = fit(X, Y[c], theta, 0.05547, 4000)
-    print("theta for ", switcher[c], " : ", theta[0:20])
-    th_coeficients.append(theta)
+    theta_vector = np.zeros(X.shape[1])
+    print("\n\n...initialize theta for ", switcher[c], " : ", theta_vector[0:20])
+    theta_vector, J_history = fit(X, Y[c], theta_vector, 0.05547, 4000)
+    print("        RESULT: learned theta for ", switcher[c], " : ", np.around(theta_vector, decimals=2))
+    theta_matrix.append(theta_vector)
     costs.append(J_history)
-    #classifiers[c, :] , costs[c, :] = fit(X[:,0:15], y_Gry, theta[0:15], 0.05547, 2000)
-
-#for J_history in costs :
-#visualize_cost(costs[3])
-#pprint(coeficients)
-th_coeficients = np.array(th_coeficients)
-#print("check theta coeficients shape=(4,15)", th_coeficients.shape)
+theta_matrix = np.array(theta_matrix)
 
 
 
-#####################################################################
-# #### Calculate probabilities for all Houses and all Students
-#####################################################################
-
-print("\n############################################################")
-print("Calculate probabilities for all 4 classes (Houses) and all students \n")
-
-#probability = sigmoid(np.dot(X, coeficients[0]))
-#pprint(probability.shape)
-#pprint(probability[0:30])
-#classProbabilities = sigmoid(X * classifiers.T)
-
-classProbabilities = []
-for i in range(0,4):
-    probability = sigmoid(np.dot(X, th_coeficients[i]))
-    #print(i+1, " class/House probability shape check=1600 ", probability.shape)
-    #print(i+1, " class/House probability examples :\n", probability[0:30])
-    classProbabilities.append(probability)
-
-classProbabilities = np.array(classProbabilities)
-#print("4 Class/Houses probability np.array shape : ", classProbabilities.shape)
-#print("4 Class/Houses probability column shape : ", classProbabilities[1].shape)
+print("\n########################################################################################################################")
+print("\n                                       SUCCESS: LEARNING COMPLETED !")
+print("\n########################################################################################################################")
+yes = input("\n??? Do you want to save theta parameters to file ????  Y/N\n")
+if yes == "Y" or yes =="y":
+        try :
+                data_dict = {'Gryffindor': list(theta_matrix[0]), 
+                                'Hufflepuff': list(theta_matrix[1]), 
+                                'Ravenclaw': list(theta_matrix[2]), 
+                                'Slytherin': list(theta_matrix[3])
+                                }
+        except:
+                print("         ERROR: Problem with dictionary definition")
+        try:
+                save_json (data_dict, "theta_coeficients.json")
+                print("         SUCCESS: File saved, use logreg_precit.py file to predict House with test.csv dataset")
+        except : 
+                print("         ERROR: Problem with saving file")
 
 
+#### Validation                                     
+########################################################################################################################
+yes = input("\nDo you want to see the LEARNING VALIDATION ? Y/N\n")
+if yes == "Y" or yes =="y":     
+        print("\n###########################################################################################################################")
+        print("\n                               VALIDATION  and ERROR CALCUL             ")
+        print("\n        NOTE: Classify a student to a House <=> find his best House  <=> find the class with the highest probability")
+        print("\n############################################################################################################################")
+
+        
+        ### Calculate probabiities
+        ######################################################################################################################################
+        print("\n...Calculating probabilities for all 4 classes (Houses) and all students with learned theta coefficients")
+        classProbabilities = []
+        for i in range(0,4):
+                probability = sigmoid(np.dot(X, theta_matrix[i]))
+                probability = np.around(probability, decimals=3)
+                print("\n           RESULT: Probabilities to be classified to",switcher[i],"house are :", np.around(probability, decimals=2)[:10])
+                classProbabilities.append(probability)
+        classProbabilities = np.array(classProbabilities)
+
+        
+        #### Classify
+        #########################################################################################################################################
+        print("\n...Classifying with numerical values (0,1,2,3) ")
+        Classifiers_matrix = []
+        for i in range (0,4):
+                classifier = [(i+1) if a > 0.4 else 0 for a in classProbabilities[i]]
+                Classifiers_matrix.append(classifier)
+        Classifiers_matrix = np.array(Classifiers_matrix)
+        Classifiers_list = sum(Classifiers_matrix)-1
+        Classifiers_list = np.array(Classifiers_list)
+        print("         RESULT: ", Classifiers_list[:30])
+
+        
+        #### Recode
+        ########################################################################################################################################
+        print("\n...Recoding learned numerical values (0,1,2,3) into text values ('Gryf','Rav','Sly','Huff')" )
+        switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
+        temp = Classifiers_list.copy()
+        Classifiers_texte = Classifiers_list.copy()
+        for i in range (0,4) :
+                Classifiers_texte = np.where(temp==i, switcher[i], Classifiers_texte)
+        Classifiers_texte = list(Classifiers_texte)
+        print("         RESULT: ", Classifiers_texte[:10])
 
 
-""" 
-#####################################################################
-# #### Classification 1 : Find  best class with a loop
-#####################################################################
+        #### Calculate error
+        ########################################################################################################################################
+        print("\n...Comparing classification results with empirical results ")
+        #print("\n      RESULT: Empirical values were: \n", y_texte[:10])
+        errors = []
+        for i in range (0, len(y_texte)) :
+                if y_texte[i] != Classifiers_texte[i] :
+                        errors.append(i)
+        print("\n...Calculating accuracy of learning ")
+        print("         RESULT: good prediction for ", len(y_texte)-len(errors), " students")
+        print("         RESULT: wrong prediction for ", len(errors), " students")
+        error_rate = len(errors)/len(y_texte)
+        print("         RESULT: error rate = ", error_rate)
+        print("         RESULT: students witch wrong prediction :", errors)
 
-print("\n#####################################################################")
-print("Classifying (Find  the best class/House for each student) with a loop : \n")
-ClassifiersB = []
-for i in range (0,4):
-    classifier = [1 if a > 0.4 else 0 for a in classProbabilities[i]]
-    pprint(set(classifier))
-    pprint(sum(classifier))
-    ClassifiersB.append(classifier)
-
-ClassifiersB = np.array(ClassifiersB)
-print("Classifier with Loop lenght = ", ClassifiersB.shape)
-print("Classifier with Loop SUM by column = ", sum(ClassifiersB))
-print("Classifier with Loop SUM total = ", sum(sum(ClassifiersB)))
-
-print("\n#####################################################################")
-print("Predicting with a loop\n")
-predictionsB = []
-for raw in ClassifiersB.T :
-    for index, classe in enumerate(raw) :
-        if classe == 1 :
-            predictionsB.append(index)  
-print(" Set of values predicted with Loop : ", set(predictionsB))
-predictionsB = np.array(predictionsB)
-print("Prdictions with Loop length = ", predictionsB.shape)
-print("Prediction with Loop values example : ", predictionsB[0:30])
-"""
-
-#####################################################################
-# #### Classification 2 : Find  best class with sum of matrix
-#####################################################################
-print("\n#####################################################################")
-print("Classifying (find the best class/House for each student) with a sum of matrix \n")
-ClassifiersM = []
-for i in range (0,4):
-    classifier = [(i+1) if a > 0.4 else 0 for a in classProbabilities[i]]
-    pprint(set(classifier))
-    ClassifiersM.append(classifier)
-ClassifiersM = np.array(ClassifiersM)
-#print("Classifier with Matrix lenght = ", ClassifiersM.shape)
-#print("Classifier with Matrix SUM by column = ", sum(ClassifiersM))
-#print("Classifier with Matrix SUM total = ", sum(sum(ClassifiersM)))
-
-print("\n#####################################################################")
-print("Predicting with sum of matrix\n")
-predictionsM = sum(ClassifiersM)-1
-#print(" Set of values predicted with Matrix : ", set(predictionsM))
-predictionsM = np.array(predictionsM)
-#print("Predictions with Matrix length ", predictionsM.shape)
-#print("Prediction with Matrix values example ", predictionsM[0:30])
-
-"""
-#####################################################################
-# #### Recode Empirical text values into numerical values
-#####################################################################
-print("\n#####################################################################")
-print("\nRecode Empirical text values into numerical values \n")
-y_recoded = y_texte.copy()
-y_recoded = [0 if el == 'Gryffindor' else el for el in y_recoded]
-y_recoded = [1 if el == 'Hufflepuff' else el for el in y_recoded]
-y_recoded = [2 if el == 'Ravenclaw' else el for el in y_recoded]
-y_recoded = [3 if el == 'Slytherin' else el for el in y_recoded]
-
-print(len(y_recoded))
-y_recoded = np.array(y_recoded)
-print("Recoded empirical values ", y_recoded[0:30])
-print("Recoded list length ", y_recoded.shape)
-
-"""
-#####################################################################
-# #### Recode learned numerical predictions into text values
-#####################################################################
-
-print("\n#####################################################################")
-print("\nRecode learned numerical predictions into text values \n")
-
-switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
-predictions_temp = predictionsM.copy()
-predictions_texte = predictionsM.copy()
-for i in range (0,4) :
-    predictions_texte = np.where(predictions_temp==i, switcher[i], predictions_texte)
-predictions_texte = list(predictions_texte)
-set(predictions_texte)
-
-""" 
-#####################################################################
-# #### Compare two methods of calcul prediction (loop and Matrix)
-#####################################################################
-print("\n#####################################################################")
-print("\nCompare two methods of calcul prediction (loop and Matrix) \n")
-
-check1  = predictionsB - predictionsM
-print("number of differences calculated in check1 should be 1600 " , len(check1))
-print("check1 values example : ", check1[:30])
-print("sum of check1 differences = ", sum(np.absolute(check1)))
-print("check1 differences set : ", set(check1))
-errors = []
-for index, value in enumerate(check1):
-    if value != 0 :
-        errors.append(index)
-print("len errors = " , len(errors))
-print("errors indexes : ", errors)
-error_rate = len(errors)/len(predictionsB)
-print("error rate ", error_rate) 
-
-"""
-
-#####################################################################
-# #### Compare learning results with empirical results
-#####################################################################
-print("\n#####################################################################")
-print("\nCompare validation results with empirical results \n")
-
-print("empirical results : ", y_texte[:100])
-print("learned results ", predictions_texte[:100])
-"""
-print("\nMatrix vs Empirical")
-check2 = predictionsM - y_recoded
-print("number of differences calculated in check2=1600 " , len(check2))
-print("check2 values example : ", check2[:30])
-print("sum of check2 differences = ", sum(np.absolute(check2)))
-print("check2 differences set : ", set(check2))
-errors = []
-for index, value in enumerate(check2):
-    if value != 0 :
-        errors.append(index)
-print("number of errors cases = " , len(errors))
-print("errors indexes : ", errors)
-error_rate = len(errors)/len(y_recoded)
-print("error rate matrix ", error_rate)
-
-print("\nLoop vs Empirical")
-check3 = predictionsB - y_recoded
-print("number of differences calculated in check3=1600 " , len(check3))
-print("check3 values example : ", check3[:30])
-print("sum of check3 differences = ", sum(np.absolute(check3)))
-print("check3 differences set : ", set(check3))
-errors = []
-for index, value in enumerate(check3):
-    if value != 0 :
-        errors.append(index)
-print("number of errors cases = " , len(errors))
-print("errors indexes : ", errors)
-error_rate = len(errors)/len(predictionsB)
-print("error rate boucle ", error_rate) 
-"""
-
-errors = []
-for i in range (0, len(y_texte)) :
-    if y_texte[i] != predictions_texte[i] :
-        errors.append(i)
-print("PREDICTIONS AFTER LEARNING : \n")
-print("good predictions for ", len(y_texte)-len(errors), " students")
-print("wrong predictions for ", len(errors), " students")
-error_rate = len(errors)/len(y_texte)
-print("error rate = ", error_rate)
-print("students witch wrong prediction :", errors)
+else :
+        sys.exit()

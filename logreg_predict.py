@@ -177,17 +177,6 @@ coeficients = np.array(coeficients)
 print(coeficients.shape)
 
 #####################################################################
-# ### Define logarithmic function
-#####################################################################
-
-def sigmoid(z):
-    # VERSION NUMPY
-    #return 1/(1 + np.exp(-z))
-    # VERSION SCIPY
-    return 1/(1 + exp(-z))
-
-
-#####################################################################
 
 ####                    ONE VS ALL PREDICT                       ####
 
