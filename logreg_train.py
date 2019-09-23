@@ -106,7 +106,7 @@ print("\n#######################################################################
 print("\n...loading train data")
 try :
         data_raw = pd.read_csv("resources/dataset_train.csv")
-        print(data_raw.head(5))
+        #print(data_raw.head(5))
 except :
         print("         ERROR: File with train data not found")
         sys.exit()
@@ -114,7 +114,7 @@ except :
 
 # ### Definir les dimensions du dataset n: nombre de colonnes, m - nombre d'enregistrements, liste des variables
 ##########################################################################################################################
-print("\n\n\n...analysing data ")
+print("...analysing data ")
 try :
         m = data_raw['Index'].shape[0]
         print("         RESULT: Sample size : ", m)
@@ -136,10 +136,10 @@ except :
 
 ### Cleaning
 ############################################################################################################################
-print("\n\n\n...cleaning data : replacing missing values by mean")
+print("\n...cleaning data : replacing missing values by mean")
 try : 
         data_clean = data_raw.fillna(data_raw.mean())
-        print(data_clean.head(5))
+        #print(data_clean.head(5))
 except :
         print("         ERROR: Replacing missing values by mean failed")
         sys.exit()
@@ -214,26 +214,23 @@ print("\n                                DEFINE COLUMN TO PREDICT ( Y ) ")
 print("\n########################################################################################################################")
 
 
-#### Anayse Hogward House
+####  Converting Hogward House to  np.array Y 
 #########################################################################################################################
-print("\n...Analysing texte variable Hogward House")
+print("\n... Analysing and converting one Hogwarts House texte column to 4 binary columns")
 y_texte = list(data_clean['Hogwarts House'])
 print("         RESULT : Number of students classified to Hogward House : ", np.array(y_texte).shape[0])
 house_names = list(set(y_texte))
 house_names.sort()
 print("         RESULT : Hogward House 4 unique values are: ", house_names)
-
-
-
-####  Converting Hogward House to  np.array Y 
-#########################################################################################################################
-print("\n... Converting one Hogwarts House texte column to 4 binary columns")
 Y = []
+df = {"H_House": y_texte}
 for name in house_names : 
         house_binary = [1 if element == name else 0 for element in y_texte ] 
         Y.append(house_binary)
+        df[name[0:3]+"_bin"] = house_binary
 Y = np.array(Y)
-print("         RESULT: 4 binary columns for Hougward House are : \n", pd.DataFrame(Y).transpose().head(7))
+#print("\n         RESULTS: 4 binary columns for Hougward House are : \n", pd.DataFrame(Y).transpose().head(10))
+print("\n         RESULTS: 4 binary columns for Hougward House are : \n", pd.DataFrame(df).head(10))
 
 
 #### Trainig
@@ -247,33 +244,26 @@ theta_matrix = []
 costs = []
 for c in range(0, 4):
     theta_vector = np.zeros(X.shape[1])
-    print("\n\n...initialize theta for ", switcher[c], " : ", theta_vector[0:20])
+    print("...initialize theta for ", switcher[c])
     theta_vector, J_history = fit(X, Y[c], theta_vector, 0.05547, 4000)
-    print("        RESULT: learned theta for ", switcher[c], " : ", np.around(theta_vector, decimals=2))
+    print("...learned theta for ", switcher[c])
     theta_matrix.append(theta_vector)
     costs.append(J_history)
 theta_matrix = np.array(theta_matrix)
 
-
-
-print("\n########################################################################################################################")
-print("\n                                       SUCCESS: LEARNING COMPLETED !")
-print("\n########################################################################################################################")
-yes = input("\n??? Do you want to save theta parameters to file ????  Y/N\n")
-if yes == "Y" or yes =="y":
-        try :
-                data_dict = {'Gryffindor': list(theta_matrix[0]), 
+theta_dict = {'Gryffindor': list(theta_matrix[0]), 
                                 'Hufflepuff': list(theta_matrix[1]), 
                                 'Ravenclaw': list(theta_matrix[2]), 
                                 'Slytherin': list(theta_matrix[3])
                                 }
-        except:
-                print("         ERROR: Problem with dictionary definition")
-        try:
-                save_json (data_dict, "theta_coeficients.json")
-                print("         SUCCESS: File saved, use logreg_precit.py file to predict House with test.csv dataset")
-        except : 
-                print("         ERROR: Problem with saving file")
+print("\n         RESULTS: \n", pd.DataFrame(theta_dict).transpose().head(30))
+print("\n         SUCCESS: LEARNING COMPLETED !")     
+try:
+        save_json (theta_dict, "theta_coeficients.json")
+        print("         SUCCESS: Theta coeficients saved to theta_coeficients.json.")
+        print("         USAGE: Use <python logreg_precit.py> command to predict a House for test.csv dataset")        
+except : 
+        print("         ERROR: Problem with saving file")
 
 
 #### Validation                                     
@@ -282,56 +272,67 @@ yes = input("\nDo you want to see the LEARNING VALIDATION ? Y/N\n")
 if yes == "Y" or yes =="y":     
         print("\n###########################################################################################################################")
         print("\n                               VALIDATION  and ERROR CALCUL             ")
-        print("\n        NOTE: Classify a student to a House <=> find his best House  <=> find the class with the highest probability")
         print("\n############################################################################################################################")
 
         
         ### Calculate probabiities
         ######################################################################################################################################
-        print("\n...Calculating probabilities for all 4 classes (Houses) and all students with learned theta coefficients")
+        print("...Calculating probabilities for all 4 classes (Houses) and all students with learned theta coefficients")
         classProbabilities = []
+        df = {}
         for i in range(0,4):
                 probability = sigmoid(np.dot(X, theta_matrix[i]))
-                probability = np.around(probability, decimals=3)
-                print("\n           RESULT: Probabilities to be classified to",switcher[i],"house are :", np.around(probability, decimals=2)[:10])
+                #probability = np.around(probability, decimals=3)
+                #print("\n           RESULT: Probabilities to be classified to",switcher[i],"house are :", np.around(probability, decimals=2)[:10])
                 classProbabilities.append(probability)
+                df["Probab_"+switcher[i][:3]] = np.around(probability, decimals=2)
         classProbabilities = np.array(classProbabilities)
-
+        #print("\n           RESULT: Probabilities to be classified to houses are :\n", pd.DataFrame(df).head(10))
         
         #### Classify
         #########################################################################################################################################
-        print("\n...Classifying with numerical values (0,1,2,3) ")
+        print("...Classifying with numerical values (0,1,2,3) ")
         Classifiers_matrix = []
         for i in range (0,4):
                 classifier = [(i+1) if a > 0.4 else 0 for a in classProbabilities[i]]
                 Classifiers_matrix.append(classifier)
         Classifiers_matrix = np.array(Classifiers_matrix)
-        Classifiers_list = sum(Classifiers_matrix)-1
+        Classifiers_list = sum(Classifiers_matrix)
         Classifiers_list = np.array(Classifiers_list)
-        print("         RESULT: ", Classifiers_list[:30])
-
+        df["BestClass"]= Classifiers_list
+        #print("         RESULT: ", Classifiers_list[:30])
+        #print("         RESULT: \n", pd.DataFrame(df).head(10))
         
         #### Recode
         ########################################################################################################################################
-        print("\n...Recoding learned numerical values (0,1,2,3) into text values ('Gryf','Rav','Sly','Huff')" )
+        print("...Recoding learned numerical values (0,1,2,3) into text values ('Gryf','Rav','Sly','Huff')" )
         switcher = {0:'Gryffindor', 2:'Ravenclaw', 3:'Slytherin', 1:'Hufflepuff'}
         temp = Classifiers_list.copy()
         Classifiers_texte = Classifiers_list.copy()
         for i in range (0,4) :
-                Classifiers_texte = np.where(temp==i, switcher[i], Classifiers_texte)
+                Classifiers_texte = np.where(temp==i+1, switcher[i], Classifiers_texte)
+        df["ClassTexte"]= Classifiers_texte
         Classifiers_texte = list(Classifiers_texte)
-        print("         RESULT: ", Classifiers_texte[:10])
+        #print("         RESULT: ", Classifiers_texte[:10])
+        #print("         RESULT: \n", pd.DataFrame(df).head(10))
 
 
         #### Calculate error
         ########################################################################################################################################
-        print("\n...Comparing classification results with empirical results ")
+        print("...Comparing classification results with empirical results ")
+        df["Empirical"]= y_texte
         #print("\n      RESULT: Empirical values were: \n", y_texte[:10])
+        accuracy = []
         errors = []
         for i in range (0, len(y_texte)) :
                 if y_texte[i] != Classifiers_texte[i] :
+                        accuracy.append(0)
                         errors.append(i)
-        print("\n...Calculating accuracy of learning ")
+                else :
+                        accuracy.append(1)
+        df["Accuracy"]= accuracy
+        print("...Calculating accuracy of learning ")
+        print("         RESULT: \n", pd.DataFrame(df).head(30))
         print("         RESULT: good prediction for ", len(y_texte)-len(errors), " students")
         print("         RESULT: wrong prediction for ", len(errors), " students")
         error_rate = len(errors)/len(y_texte)
