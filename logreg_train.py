@@ -114,7 +114,6 @@ print("\n#######################################################################
 print("\n...loading train data")
 try:
     data_raw = pd.read_csv("resources/dataset_train.csv")
-    # print(data_raw.head(5))
 except:
     print("         ERROR: File with train data not found")
     sys.exit()
@@ -125,25 +124,25 @@ except:
 print("...analysing data ")
 try:
     m = data_raw['Index'].shape[0]
-    print("         RESULT: Sample size : ", m)
     n = data_raw.shape[1]
-    print("                 Number of columns : ", n)
     # assert(m>100)
     # assert(n>3)
 except:
     print("         ERROR: Dataset dimensions to small or impossible to find")
     sys.exit()
+print("...renaming columns ")
 try:
     column_names_list = list(data_raw.columns)
-    print("                 Column names are :\n", column_names_list)
+    column_short_names_list = [ name.replace("Hogwarts", "").replace(" ", "")[:6] for name in column_names_list ]
+    #print("                 Column short names are :\n", column_short_names_list)
+    data_raw.columns = column_short_names_list
 except:
     print("         ERROR: Impossible to find column names in this dataset")
     sys.exit()
 
-
 # Cleaning
 ############################################################################################################################
-print("\n...cleaning data : replacing missing values by mean")
+print("...cleaning data : replacing missing values by mean")
 try:
     data_clean = data_raw.fillna(data_raw.mean())
     # print(data_clean.head(5))
@@ -151,6 +150,13 @@ except:
     print("         ERROR: Replacing missing values by mean failed")
     sys.exit()
 
+print("\n         RESULT: Sample size : ", m)
+print("                 Number of columns : ", n)
+print("\n\n", data_clean[column_short_names_list[:10]].head(7))
+#print(data_raw[column_names_list[5:10]].head(5))
+#print(data_raw[column_names_list[10:15]].head(5))
+print("\n", data_clean[column_short_names_list[10:]].head(7))
+print("\n               Column full names are :\n", column_names_list)
 
 # Define X
 ############################################################################################################################
@@ -162,52 +168,56 @@ print("\n#######################################################################
 # Extract numerical
 ############################################################################################################################
 print("\n...Taking numerical variables : col_6 Arithmancy to col_19 Flying")
-X2_15 = np.array(data_clean[column_names_list[6:19]])
-print("         RESULT: Numerical variables converted to matrix with dimensions",
-      X2_15.shape, ":\n")
-print(pd.DataFrame(np.around(X2_15, decimals=2)).head(5))
+X2_15 = np.array(data_clean[column_short_names_list[6:19]])
+#print("         RESULT: Numerical variables converted to matrix with dimensions",
+#      X2_15.shape, ":\n")
+#print(pd.DataFrame(np.around(X2_15, decimals=2)).head(5))
 
 
 # Normalize
 ############################################################################################################################
-print("\n\n\n...Normalizing numerical variables with center-reduce method")
+print("...Normalizing numerical variables with center-reduce method")
 X2_15_norm, mean, std = centrer_reduire_matrix(X2_15)
-print("         RESULT: Normalized numerical variables with dimensions",
-      X2_15_norm.shape, ":\n")
-print(pd.DataFrame(np.around(X2_15_norm, decimals=2)).head(5))
+#print("         RESULT: Normalized numerical variables with dimensions",
+#      X2_15_norm.shape, ":\n")
 
+df = pd.DataFrame(np.around(X2_15_norm, decimals=2))
+df.columns = column_short_names_list[2:15]
+#print("         RESULT\n", df.head(7))
 
 # Text Column "Best Hand"
 ############################################################################################################################
-print("\n\n\n...Adding text column 'Best Hand'")
-X1 = list(data_clean['Best Hand'])
-print("         RESULT: Found Best Hand text cathegories", set(X1))
+X1 = list(data_clean['BestHa'])
+print("...Found text values for 'Best Hand'", set(X1))
 # convertir X1 en binaire
 X1 = [0.0 if el == 'Left' else 1.0 for el in X1]
 X1 = np.array(X1)
-print("         RESULT: Best Hand converted to binary cathegories", set(X1))
-print("         RESULT: Best Hand sample : ", X1)
+print("...Converting Best Hand to binary cathegories", set(X1))
+#print("         RESULT: Best Hand sample : ", X1)
 X1_norm, mean, std = centrer_reduire_feature(X1)
-print("         RESULT: Best Hand normalized sample  : ",
+print("...Normalizing and adding Best Hand : ",
       np.around(X1_norm, decimals=2))
 
 
 # Column for X0
 ############################################################################################################################
 
-print("\n\n\n...Adding a column of ones as X0")
+print("...Adding a column of ones as X0")
 X0 = np.ones(m)
 #print("X0 shape 1600 : ", X0.shape)
-print("         RESULT: X0  with ones : ", X0)
+#print("         RESULT: X0  with ones : ", X0)
 
 
 # Concatenate all
 ############################################################################################################################
-print("\n\n\n...Concatenating all in one matrix ")
+print("...Concatenating all in one matrix ")
 X_norm = np.c_[X0, X1_norm, X2_15_norm]
-print("         RESULT : Final X matrix with dimensions :", X_norm.shape, ":\n")
-print(pd.DataFrame(np.around(X_norm, decimals=2)).head(7))
 X = X_norm
+X_names = ["X_"+str(a) for a in range (0,X.shape[1])]
+df = pd.DataFrame(np.around(X_norm, decimals=2))
+df.columns = X_names
+print("\n\n         RESULT : Final X matrix with dimensions :", X.shape, ":\n")
+print(df.head(7))
 
 
 # Define Y
@@ -219,22 +229,22 @@ print("\n#######################################################################
 
 # Converting Hogward House to  np.array Y
 #########################################################################################################################
-print("\n... Analysing and converting one Hogwarts House texte column to 4 binary columns")
-y_texte = list(data_clean['Hogwarts House'])
-print("         RESULT : Number of students classified to Hogward House : ",
-      np.array(y_texte).shape)
+print("\n... Converting one Hogwarts House texte column to 4 binary columns")
+y_texte = list(data_clean['House'])
+print("\n         RESULTS : Number of students classified to Hogward House : ",
+      np.array(y_texte).shape[0])
 house_names = list(set(y_texte))
 house_names.sort()
-print("         RESULT : Hogward House 4 unique values are: ", house_names)
+print("                 Hogward House 4 unique values are: ", house_names)
 Y = []
-df = {"H_House": y_texte}
+df = {"House": y_texte}
 for name in house_names:
     house_binary = [1 if element == name else 0 for element in y_texte]
     Y.append(house_binary)
     df[name[0:3]+"_bin"] = house_binary
 Y = np.array(Y)
 #print("\n         RESULTS: 4 binary columns for Hougward House are : \n", pd.DataFrame(Y).transpose().head(10))
-print("\n         RESULTS: 4 binary columns for Hougward House are : \n",
+print("                 4 binary columns for Hougward House are : \n\n",
       pd.DataFrame(df).head(10))
 
 
@@ -254,14 +264,16 @@ for c in range(0, 4):
     print("...learned theta for ", switcher[c])
     theta_matrix.append(theta_vector)
     costs.append(J_history)
-theta_matrix = np.array(theta_matrix)
+theta_matrix = np.around(np.array(theta_matrix), decimals=3)
 
 theta_dict = {'Gryffindor': list(theta_matrix[0]),
               'Hufflepuff': list(theta_matrix[1]),
               'Ravenclaw': list(theta_matrix[2]),
               'Slytherin': list(theta_matrix[3])
               }
-print("\n         RESULTS: \n", pd.DataFrame(theta_dict).transpose().head(30))
+df = pd.DataFrame(theta_dict).transpose()
+df.columns = X_names
+print("\n         RESULTS: \n", df.head(4))
 print("\n         SUCCESS: LEARNING COMPLETED !")
 try:
     save_json(theta_dict, "theta_coeficients.json")
