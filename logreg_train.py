@@ -3,10 +3,12 @@
 import sys
 import numpy as np
 import pandas as pd
+#from pandas import DataFrame
 from pprint import pprint
 # from tqdm import tqdm
 import json
 #import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
 print("\nRESULT: Import completed")
 
 ######################################################################
@@ -350,12 +352,13 @@ if yes == "Y" or yes == "y":
     df["Accuracy"] = accuracy
     print("...Calculating accuracy of learning ")
     print("         RESULT: \n", pd.DataFrame(df).head(30))
-    print("         RESULT: good prediction for ",
+    print("         RESULT: Good prediction for ",
           len(y_texte)-len(errors), " students")
-    print("         RESULT: wrong prediction for ", len(errors), " students")
+    print("         RESULT: Wrong prediction for ", len(errors), " students")
     error_rate = len(errors)/len(y_texte)
-    print("         RESULT: error rate = ", error_rate)
-    print("         RESULT: students witch wrong prediction :", errors)
-
+    print("         RESULT: Score of wrong predictions = ", error_rate)
+    print("         RESULT: Students witch wrong prediction :", errors)
+    score = accuracy_score(y_texte, Classifiers_texte)
+    print("\n\n         RESULT: Scikitlearn score = ", score)
 else:
     sys.exit()
