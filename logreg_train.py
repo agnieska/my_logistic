@@ -3,12 +3,13 @@
 import sys
 import numpy as np
 import pandas as pd
-#from pandas import DataFrame
+from datetime import datetime
+from dateutil import parser
 from pprint import pprint
 # from tqdm import tqdm
 import json
-#import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
+
 print("\nRESULT: Import completed")
 
 ######################################################################
@@ -170,7 +171,7 @@ print("\n#######################################################################
 # Extract numerical
 ############################################################################################################################
 print("\n...Taking numerical variables : col_6 Arithmancy to col_19 Flying")
-X2_15 = np.array(data_clean[column_short_names_list[6:19]])
+X3_16 = np.array(data_clean[column_short_names_list[6:19]])
 #print("         RESULT: Numerical variables converted to matrix with dimensions",
 #      X2_15.shape, ":\n")
 #print(pd.DataFrame(np.around(X2_15, decimals=2)).head(5))
@@ -179,26 +180,42 @@ X2_15 = np.array(data_clean[column_short_names_list[6:19]])
 # Normalize
 ############################################################################################################################
 print("...Normalizing numerical variables with center-reduce method")
-X2_15_norm, mean, std = centrer_reduire_matrix(X2_15)
+X3_16_norm, mean, std = centrer_reduire_matrix(X3_16)
 #print("         RESULT: Normalized numerical variables with dimensions",
 #      X2_15_norm.shape, ":\n")
 
-df = pd.DataFrame(np.around(X2_15_norm, decimals=2))
+df = pd.DataFrame(np.around(X3_16_norm, decimals=2))
 df.columns = column_short_names_list[2:15]
 #print("         RESULT\n", df.head(7))
 
+# Date Column "Birthday Day"
+############################################################################################################################
+X1 = list(data_clean['Birthd'])
+print("...Found date values for 'Birthday'", list(set(X1))[:6])
+# convertir X1 en nombre de jours
+today = datetime.today()
+X1 = [(today - parser.parse(el)).days for el in X1]
+X1 = np.array(X1)
+#print("...Converting Birthday Date to age in days ", set(X1))
+#print("         RESULT: Age sample : ", X1)
+X1_norm, mean, std = centrer_reduire_feature(X1)
+#print("...Normalizing and adding Age : ",
+      #np.around(X1_norm, decimals=2))
+
+
 # Text Column "Best Hand"
 ############################################################################################################################
-X1 = list(data_clean['BestHa'])
-print("...Found text values for 'Best Hand'", set(X1))
+X2 = list(data_clean['BestHa'])
+print("...Found text values for 'Best Hand'", set(X2))
 # convertir X1 en binaire
-X1 = [0.0 if el == 'Left' else 1.0 for el in X1]
-X1 = np.array(X1)
-print("...Converting Best Hand to binary cathegories", set(X1))
-#print("         RESULT: Best Hand sample : ", X1)
-X1_norm, mean, std = centrer_reduire_feature(X1)
-print("...Normalizing and adding Best Hand : ",
-      np.around(X1_norm, decimals=2))
+X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
+X2 = np.array(X2)
+print("...Converting Best Hand to binary cathegories", set(X2))
+#print("         RESULT: Best Hand sample : ", X2)
+X2_norm, mean, std = centrer_reduire_feature(X2)
+#print("...Normalizing and adding Best Hand : ",
+      #np.around(X2_norm, decimals=2))
+
 
 
 # Column for X0
@@ -213,7 +230,7 @@ X0 = np.ones(m)
 # Concatenate all
 ############################################################################################################################
 print("...Concatenating all in one matrix ")
-X_norm = np.c_[X0, X1_norm, X2_15_norm]
+X_norm = np.c_[X0, X1_norm, X2_norm, X3_16_norm]
 X = X_norm
 X_names = ["X_"+str(a) for a in range (0,X.shape[1])]
 df = pd.DataFrame(np.around(X_norm, decimals=2))
@@ -351,7 +368,7 @@ if yes == "Y" or yes == "y":
             accuracy.append(1)
     df["Accuracy"] = accuracy
     print("...Calculating accuracy of learning ")
-    print("         RESULT: \n", pd.DataFrame(df).head(30))
+    print("         RESULT: \n", pd.DataFrame(df).head(15))
     print("         RESULT: Good prediction for ",
           len(y_texte)-len(errors), " students")
     print("         RESULT: Wrong prediction for ", len(errors), " students")
