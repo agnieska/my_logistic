@@ -5,6 +5,8 @@
 
 import numpy as np
 import pandas as pd
+from datetime import datetime
+from dateutil import parser
 from pprint import pprint
 import json
 
@@ -80,14 +82,20 @@ data_clean = data_test.fillna(data_test.mean())
 column_names_list = list(data_clean.columns)
 m = data_clean['Index'].shape[0]
 print("Found sample size for test data : ", m)
-X2_15 = np.array(data_clean[column_names_list[6:19]])
-X2_15_norm, mean, std = centrer_reduire_matrix(X2_15)
-X1 = list(data_clean['Best Hand'])
-X1 = [0.0 if el == 'Left' else 1.0 for el in X1]
+X3_16 = np.array(data_clean[column_names_list[6:19]])
+X3_16_norm, mean, std = centrer_reduire_matrix(X3_16)
+
+X1 = list(data_clean['Birthday'])
+today = datetime.today()
+X1 = [(today - parser.parse(el)).days for el in X1]
 X1 = np.array(X1)
 X1_norm, mean, std = centrer_reduire_feature(X1)
+X2 = list(data_clean['Best Hand'])
+X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
+X2 = np.array(X2)
+X2_norm, mean, std = centrer_reduire_feature(X2)
 X0 = np.ones(m)
-X_norm = np.c_[X0, X1_norm, X2_15_norm]
+X_norm = np.c_[X0, X1_norm, X2_norm, X3_16_norm]
 X = X_norm
 X_names = ["X_"+str(a) for a in range (0,X.shape[1])]
 df = pd.DataFrame(np.around(X_norm, decimals=2))
@@ -127,7 +135,11 @@ Classifiers_texte = Classifiers_list.copy()
 for i in range(0, 4):
     Classifiers_texte = np.where(
         temp == i+1, switcher[i], Classifiers_texte)
-df["ClassTexte"] = Classifiers_texte
 Classifiers_texte = list(Classifiers_texte)
-print("         RESULT: \n", pd.DataFrame(df).head(400))
+df["Index"] = data_clean['Index']
+df["Houses"] = Classifiers_texte
+pd.DataFrame(df).to_csv("houses.csv", index = False)
+
+print("         RESULT: \n", pd.DataFrame(df).head(20))
+print("\n        Predictions saved to houses.csv")
 
