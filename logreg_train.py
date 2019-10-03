@@ -41,6 +41,7 @@ def centrer_reduire_feature(X):
 def centrer_reduire_matrix(XXX):
     mean = np.mean(XXX, axis=0)
     stdev = np.std(XXX, axis=0)
+    stdev = stdev
     XXX = (XXX - mean)/stdev
     return XXX, mean, stdev
 
@@ -153,101 +154,91 @@ except:
     print("         ERROR: Replacing missing values by mean failed")
     sys.exit()
 
-print("\n         RESULT: Sample size : ", m)
-print("                 Number of columns : ", n)
+print("\n         LOADED: Total sample size : ", m)
+print("                 Total Number of columns : ", n)
 print("\n\n", data_clean[column_short_names_list[:10]].head(7))
 #print(data_raw[column_names_list[5:10]].head(5))
 #print(data_raw[column_names_list[10:15]].head(5))
 print("\n", data_clean[column_short_names_list[10:]].head(7))
-print("\n               Column full names are :\n", column_names_list)
+print("\n               Column full names are :\n", column_names_list[:10], "\n", column_names_list[10:])
 
 # Define X
-############################################################################################################################
-print("\n\n#################################################################################################################")
+#################################################################################################################################
+print("\n\n######################################################################################################################")
 print("\n                        DEFINE COLUMNS TO ANALYSE AND LEARN ( X ) ")
-print("\n###################################################################################################################")
+print("\n######################################################################################################################")
 
 
-# Extract numerical
-############################################################################################################################
-print("\n...Taking numerical variables : col_6 Arithmancy to col_19 Flying")
+
+# Select columns
+###############################################################################################################################
+print("\n...Taking variables : col_4 Birthday to col_19 Flying")
 X3_16 = np.array(data_clean[column_short_names_list[6:19]])
-#print("         RESULT: Numerical variables converted to matrix with dimensions",
-#      X2_15.shape, ":\n")
-#print(pd.DataFrame(np.around(X2_15, decimals=2)).head(5))
-
-
-# Normalize
-############################################################################################################################
-print("...Normalizing numerical variables with center-reduce method")
-X3_16_norm, mean, std = centrer_reduire_matrix(X3_16)
-#print("         RESULT: Normalized numerical variables with dimensions",
-#      X2_15_norm.shape, ":\n")
-
-df = pd.DataFrame(np.around(X3_16_norm, decimals=2))
-df.columns = column_short_names_list[2:15]
-#print("         RESULT\n", df.head(7))
 
 # Date Column "Birthday Day"
-############################################################################################################################
+###############################################################################################################################
 X1 = list(data_clean['Birthd'])
-print("...Found date values for 'Birthday'", list(set(X1))[:6])
+print("...Converting Birthday to age in days ", list(set(X1))[:6])
 # convertir X1 en nombre de jours
 today = datetime.today()
 X1 = [(today - parser.parse(el)).days for el in X1]
 X1 = np.array(X1)
-#print("...Converting Birthday Date to age in days ", set(X1))
 #print("         RESULT: Age sample : ", X1)
-X1_norm, mean, std = centrer_reduire_feature(X1)
+#X1_norm, mean, std = centrer_reduire_feature(X1)
 #print("...Normalizing and adding Age : ",
       #np.around(X1_norm, decimals=2))
 
-
 # Text Column "Best Hand"
-############################################################################################################################
+##############################################################################################################################
 X2 = list(data_clean['BestHa'])
-print("...Found text values for 'Best Hand'", set(X2))
+print("...Converting 'Best Hand' to binary cathegories", set(X2))
 # convertir X1 en binaire
 X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
 X2 = np.array(X2)
-print("...Converting Best Hand to binary cathegories", set(X2))
-#print("         RESULT: Best Hand sample : ", X2)
-X2_norm, mean, std = centrer_reduire_feature(X2)
+#X2_norm, mean, std = centrer_reduire_feature(X2)
 #print("...Normalizing and adding Best Hand : ",
       #np.around(X2_norm, decimals=2))
 
-
-
-# Column for X0
-############################################################################################################################
-
-print("...Adding a column of ones as X0")
-X0 = np.ones(m)
-#print("X0 shape 1600 : ", X0.shape)
-#print("         RESULT: X0  with ones : ", X0)
-
-
 # Concatenate all
-############################################################################################################################
-print("...Concatenating all in one matrix ")
-X_norm = np.c_[X0, X1_norm, X2_norm, X3_16_norm]
-X = X_norm
-X_names = ["X_"+str(a) for a in range (0,X.shape[1])]
+##############################################################################################################################
+X = np.c_[X1, X2, X3_16]
+df = pd.DataFrame(np.around(X, decimals=2))
+df.columns = column_short_names_list[4:]
+print("         RESULT : Selected and converted X data, dim :", X.shape, ":\n")
+print(df.head(7))
+
+# Normalize
+##############################################################################################################################
+print("\n\n...Normalizing all  variables with center-reduce method")
+X_norm, X_means, X_std = centrer_reduire_matrix(X)
+print("         RESULT: X Normalized X data, dim",    X_norm.shape, ":\n")
 df = pd.DataFrame(np.around(X_norm, decimals=2))
-df.columns = X_names
-print("\n\n         RESULT : Final X matrix with dimensions :", X.shape, ":\n")
+df.columns = column_short_names_list[4:]
 print(df.head(7))
 
 
+# Column for X0
+#############################################################################################################################
+print("\n\n...Adding a column of ones as X0")
+X0 = np.ones(m)
+X_norm = np.c_[X0, X_norm]
+X_names = ["X_"+str(a) for a in range (0,X_norm.shape[1])]
+df = pd.DataFrame(np.around(X_norm, decimals=2))
+df.columns = X_names
+print("         RESULT : Final X matrix with dimensions :", X_norm.shape, ":\n")
+print( df.head(7))
+
+X = X_norm
+
 # Define Y
-#########################################################################################################################
-print("\n########################################################################################################################")
+###############################################################################################################################
+print("\n######################################################################################################################")
 print("\n                                DEFINE COLUMN TO PREDICT ( Y ) ")
-print("\n########################################################################################################################")
+print("\n######################################################################################################################")
 
 
 # Converting Hogward House to  np.array Y
-#########################################################################################################################
+###############################################################################################################################
 print("\n... Converting one Hogwarts House texte column to 4 binary columns")
 y_texte = list(data_clean['House'])
 print("\n         RESULTS : Number of students classified to Hogward House : ",
@@ -268,10 +259,10 @@ print("                 4 binary columns for Hougward House are : \n\n",
 
 
 # Trainig
-####################################################################################################################
-print("\n######################################################################################################################")
+###############################################################################################################################
+print("\n#######################################################################################################################")
 print("\n                                         ONE VS ALL TRAINING")
-print("\n######################################################################################################################")
+print("\n#######################################################################################################################\n")
 
 switcher = {0: 'Gryffindor', 2: 'Ravenclaw', 3: 'Slytherin', 1: 'Hufflepuff'}
 theta_matrix = []
@@ -288,31 +279,33 @@ theta_matrix = np.around(np.array(theta_matrix), decimals=3)
 theta_dict = {'Gryffindor': list(theta_matrix[0]),
               'Hufflepuff': list(theta_matrix[1]),
               'Ravenclaw': list(theta_matrix[2]),
-              'Slytherin': list(theta_matrix[3])
+              'Slytherin': list(theta_matrix[3]),
               }
 df = pd.DataFrame(theta_dict).transpose()
 df.columns = X_names
-print("\n         RESULTS: \n", df.head(4))
+print("\n         THETA RESULTS: \n", df.head(6))
 print("\n         SUCCESS: LEARNING COMPLETED !")
+theta_dict['means']= list(X_means)
+theta_dict['std' ]= list(X_std)
 try:
-    save_json(theta_dict, "theta_coeficients.json")
-    print("         SUCCESS: Theta coeficients saved to theta_coeficients.json.")
-    print("         USAGE: Use <python logreg_precit.py> command to predict a House for test.csv dataset")
+    save_json(theta_dict, "learning_params.json")
+    print("                Theta coeficients saved to learning_params.json.")
+    print("""         USAGE: Use 'python logreg_precit.py' command  with 'ressources/dataset_test.csv' """)
 except:
     print("         ERROR: Problem with saving file")
 
 
 # Validation
-########################################################################################################################
+############################################################################################################################################
 yes = input("\nDo you want to see the LEARNING VALIDATION ? Y/N\n")
 if yes == "Y" or yes == "y":
-    print("\n###########################################################################################################################")
+    print("\n\n\n##########################################################################################################################")
     print("\n                               VALIDATION  and ERROR CALCUL             ")
-    print("\n############################################################################################################################")
+    print("\n##########################################################################################################################")
 
     # Calculate probabiities
     ######################################################################################################################################
-    print("...Calculating probabilities for all 4 classes (Houses) and all students with learned theta coefficients")
+    print("\n...Calculating probabilities for all 4 classes (Houses) and all students with learned theta coefficients")
     classProbabilities = []
     df = {}
     for i in range(0, 4):
@@ -368,14 +361,15 @@ if yes == "Y" or yes == "y":
             accuracy.append(1)
     df["Accuracy"] = accuracy
     print("...Calculating accuracy of learning ")
-    print("         RESULT: \n", pd.DataFrame(df).head(15))
-    print("         RESULT: Good prediction for ",
+    print("\n", pd.DataFrame(df).head(10))
+    print("\n\n     RESULTS:") 
+    print("         Good prediction for                ",
           len(y_texte)-len(errors), " students")
-    print("         RESULT: Wrong prediction for ", len(errors), " students")
+    print("         Wrong prediction for                 ", len(errors), " students")
     error_rate = len(errors)/len(y_texte)
-    print("         RESULT: Score of wrong predictions = ", error_rate)
-    print("         RESULT: Students witch wrong prediction :", errors)
+    print("         Percentage of wrong predictions:     ", error_rate)
+    """ print("         Students witch wrong prediction :", errors)"""
     score = accuracy_score(y_texte, Classifiers_texte)
-    print("\n\n         RESULT: Scikitlearn score = ", score)
+    print("         Scikitlearn accuracy score:          ", score)
 else:
     sys.exit()
