@@ -22,23 +22,12 @@ def prepare_dataframe (filename, missing=True, norm=True):
             data[name] = (data[name] - data[name].mean()) / (data[name].max() - data[name].min())
     return data, column_list
 
-def plt_scatter(df, col_name1, col_name2, fig_nb):
-    plt.rc('font', size=12)
-    plt.rc('axes', labelsize=12) 
-    plt.figure(fig_nb)
-    ax = plt.axes()
-    ax.scatter(x=df[col_name1], y=df[col_name2], color=np.random.rand(3), s=3)
-    ax.set_title(col_name1+" by "+col_name2)
-    plt.xlabel(col_name1[:12])
-    plt.ylabel(col_name2[:12])
-    #plt.show()
-
 def sns_scatter(df, col_name1, col_name2, col_name3, fig_nb):
     plt.rc('font', size=12)
     plt.rc('axes', labelsize=12) 
     plt.figure(fig_nb)
-    ax = sns.scatterplot(data=df, x=col_name1, y=col_name2, hue=col_name3, size=3)
-    ax.set_title("SNS"+col_name1+" by "+col_name2)
+    ax = sns.scatterplot(data=df, x=col_name1, y=col_name2, hue=col_name3)
+    ax.set_title(col_name1+" by "+col_name2)
     #plt.xlabel(col_name1[:12])
     #plt.ylabel(col_name2[:12])
     #plt.show()
@@ -68,48 +57,31 @@ def plt_scatters(df, variables, fig_nb):
     fig.tight_layout()  # Improves appearance a bit.
     #plt.show()
 
-def sns_scatters(df, variables, variable3, fig_nb):
-    n_rows = len(variables)
-    n_cols = len(variables)
-    plt.rc('font', size=2)
-    plt.rc('axes', labelsize=10) 
-    fig = plt.figure(fig_nb, figsize=(10,10), dpi= 100)
-    for i, var_name1 in enumerate(variables):  
-        for j, var_name2 in enumerate(variables):          
-            number = i*len(variables)+j+1
-            ax = fig.add_subplot(n_rows, n_cols, number)
-            ax = sns.scatterplot(data=df, x=var_name1, y=var_name2, hue=variable3, size=0.5)
-            #ax.scatter(x=df[var_name1], y=df[var_name2], color=np.random.rand(3), s=1)
-            if (number-1) % n_cols==0:
-                plt.ylabel(var_name1[:6])
-            if number > (n_rows-1)* n_cols:
-                plt.xlabel(var_name2[:6])
-    ax.set_title("Variables by "+variable3)
-    fig.tight_layout()  # Improves appearance a bit.
-    #plt.show()
-
 def main ():
 
-    data, column_list = prepare_dataframe ("resources/dataset_train.csv")
+    data, column_list = prepare_dataframe ("resources/dataset_train.csv", missing=False, norm=True)
     # Select columns with numeric values or not
-    """ variables = column_list[6:19] """
     
+    print("\nQUESTION: Quelles sont les deux features qui sont semblables ?")
+    
+    
+    variables = column_list[6:19]
     # dessiner grande gride
-    """ plt.rc('font', size=2)
+    plt.rc('font', size=2)
     plt.rc('axes', labelsize=2) 
     plt_scatters(data, variables, 1)
-    sns_scatters(data, variables, "Hogwarts House", 1)
-    plt.show() """
-   
-   # dessiner les petits plots
+    #sns_scatters(data, variables, "Hogwarts House", 1)
+    plt.show() 
+    
+    
+    print("\nRESP1: Astronomy et Defense ont une repartition semblable mais correlée négativement")
+    print("RESP2: Arithmancy et Magical Creatures ne sont pas correlees mais elles ont toutes les 2 une repartition qui ressemble à une repartition aléatoire\n")
+    
+    # dessiner les petits plots
     plt.rc('font', size=12)
     plt.rc('axes', labelsize=12) 
-    plt_scatter(data, 'Potions', 'Care of Magical Creatures', 1)
-    plt_scatter(data, 'Arithmancy', 'Care of Magical Creatures', 2)
-    sns_scatter(data, 'Potions', 'Care of Magical Creatures', "Hogwarts House", 3)
-    sns_scatter(data, 'Arithmancy', 'Care of Magical Creatures', "Hogwarts House", 4)
+    sns_scatter(data, 'Astronomy', 'Defense Against the Dark Arts', "Hogwarts House", 1)
+    sns_scatter(data, 'Arithmancy', 'Care of Magical Creatures', "Hogwarts House", 2)
     plt.show()
-
-    
 
 main()

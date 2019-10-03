@@ -25,10 +25,13 @@ def prepare_dataframe (filename, missing=True, norm=True):
 
 
 def main ():
-    data, column_list = prepare_dataframe ("resources/dataset_train.csv")
+    data, column_list = prepare_dataframe ("resources/dataset_train.csv", missing=False, norm=True)
     # Select columns with numeric values or not
     df = data[column_list[1:]]
+    print("\nQUESTION: Quelles caractéristiques allez-vous utiliser pour entraîner la régression logistique?")
+    print("\nREPONSE: Toutes sauf celles qui ont une distribution homogene vis a vis la variable à predire (houses).")
+    print("         On peut aussi supprimer une des 2 variables correlées.\n\n")
     sns.pairplot(data=df, hue="Hogwarts House")
     plt.show()
-
+    
 main()
