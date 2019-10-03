@@ -40,11 +40,11 @@ def centrer_reduire_feature(X):
 # normalize pour plusieures features a la fois
 
 
-def centrer_reduire_matrix(XXX):
-    mean = np.mean(XXX, axis=0)
-    stdev = np.std(XXX, axis=0)
-    XXX = (XXX - mean)/stdev
-    return XXX, mean, stdev
+def centrer_reduire_matrix(XXX, means, stdev):
+    #mean = np.mean(XXX, axis=0)
+    #stdev = np.std(XXX, axis=0)
+    XXX = (XXX - means)/stdev
+    return np.array(XXX)
 
 ######################################################################
 # ### Json functions
@@ -70,11 +70,16 @@ print("\n#######################################################################
 print("\n                               LOAD DATA ")
 print("\n##################################################################################################################")
 print("\n...loading theta training results")
-theta_dict = read_json("theta_coeficients.json")
+theta_dict = read_json("learning_params.json")
 theta_matrix = np.array([theta_dict['Gryffindor'] , theta_dict['Hufflepuff'], theta_dict['Ravenclaw'], theta_dict['Slytherin']])
+means = np.array(theta_dict['means'])
+print("means shape", means.shape)
+stdev = np.array(theta_dict['std'])
+print("stdev shape", stdev.shape)
 print("\n\n")
 print(theta_matrix)
-
+print(means)
+print(stdev)
 print("\n...loading test data")
 data_test = pd.read_csv("resources/dataset_test.csv")
 print("\n\n", data_test.head(10))
@@ -82,20 +87,25 @@ data_clean = data_test.fillna(data_test.mean())
 column_names_list = list(data_clean.columns)
 m = data_clean['Index'].shape[0]
 print("Found sample size for test data : ", m)
-X3_16 = np.array(data_clean[column_names_list[6:19]])
-X3_16_norm, mean, std = centrer_reduire_matrix(X3_16)
+
+
 
 X1 = list(data_clean['Birthday'])
 today = datetime.today()
 X1 = [(today - parser.parse(el)).days for el in X1]
 X1 = np.array(X1)
-X1_norm, mean, std = centrer_reduire_feature(X1)
+#X1_norm = centrer_reduire_feature(X1, means, stdev)
 X2 = list(data_clean['Best Hand'])
 X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
 X2 = np.array(X2)
-X2_norm, mean, std = centrer_reduire_feature(X2)
+#X2_norm = centrer_reduire_feature(X2, means, stdev)
+X3_16 = np.array(data_clean[column_names_list[6:19]])
+X = np.c_[X1, X2, X3_16]
+X_norm = centrer_reduire_matrix(X, means, stdev)
 X0 = np.ones(m)
-X_norm = np.c_[X0, X1_norm, X2_norm, X3_16_norm]
+print("X0 shape:", X0.shape)
+print("X norm shape:", X_norm.shape)
+X_norm = np.c_[X0, X_norm]
 X = X_norm
 X_names = ["X_"+str(a) for a in range (0,X.shape[1])]
 df = pd.DataFrame(np.around(X_norm, decimals=2))
