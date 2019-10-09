@@ -73,38 +73,28 @@ print("\n...loading theta training results")
 theta_dict = read_json("learning_params.json")
 theta_matrix = np.array([theta_dict['Gryffindor'] , theta_dict['Hufflepuff'], theta_dict['Ravenclaw'], theta_dict['Slytherin']])
 means = np.array(theta_dict['means'])
-print("means shape", means.shape)
 stdev = np.array(theta_dict['std'])
-print("stdev shape", stdev.shape)
-print("\n\n")
 print(theta_matrix)
-print(means)
-print(stdev)
 print("\n...loading test data")
 data_test = pd.read_csv("resources/dataset_test.csv")
-print("\n\n", data_test.head(10))
+print(data_test.head(10))
 data_clean = data_test.fillna(data_test.mean())
 column_names_list = list(data_clean.columns)
 m = data_clean['Index'].shape[0]
 print("Found sample size for test data : ", m)
 
-
-
+# prepare data
 X1 = list(data_clean['Birthday'])
 today = datetime.today()
 X1 = [(today - parser.parse(el)).days for el in X1]
 X1 = np.array(X1)
-#X1_norm = centrer_reduire_feature(X1, means, stdev)
 X2 = list(data_clean['Best Hand'])
 X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
 X2 = np.array(X2)
-#X2_norm = centrer_reduire_feature(X2, means, stdev)
 X3_16 = np.array(data_clean[column_names_list[6:19]])
 X = np.c_[X1, X2, X3_16]
 X_norm = centrer_reduire_matrix(X, means, stdev)
 X0 = np.ones(m)
-print("X0 shape:", X0.shape)
-print("X norm shape:", X_norm.shape)
 X_norm = np.c_[X0, X_norm]
 X = X_norm
 X_names = ["X_"+str(a) for a in range (0,X.shape[1])]
@@ -125,10 +115,7 @@ classProbabilities = []
 df = {}
 for i in range(0, 4):
     probability = sigmoid(np.dot(X, theta_matrix[i]))
-    #probability = np.around(probability, decimals=3)
-    #print("\n           RESULT: Probabilities to be classified to",switcher[i],"house are :", np.around(probability, decimals=2)[:10])
     classProbabilities.append(probability)
-    #df["Probab_"+switcher[i][:3]] = np.around(probability, decimals=2)
 classProbabilities = np.array(classProbabilities)
 
 Classifiers_matrix = []
@@ -138,7 +125,6 @@ for i in range(0, 4):
 Classifiers_matrix = np.array(Classifiers_matrix)
 Classifiers_list = sum(Classifiers_matrix)
 Classifiers_list = np.array(Classifiers_list)
-#df["BestClass"] = Classifiers_list
 
 temp = Classifiers_list.copy()
 Classifiers_texte = Classifiers_list.copy()

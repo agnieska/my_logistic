@@ -43,11 +43,12 @@ def sea_hist(fig_nb, data, column_name):
     # Decoration
     plt.title(column_name[:12]+'.  / by House name', fontsize=18)
     plt.legend()
-    plt.show()
+    #plt.show()
 
 
 
 def main():
+    print("\nQUESTION: Quel cours de Poudlard a une répartition des notes homogènes entre les quatres maisons ?")
     data, column_list = prepare_dataframe ("resources/dataset_train.csv", missing=True, norm=True)
     # plt.hist(data['Arithmancy'], bins=10)
     # Select columns with numeric values or not
@@ -57,5 +58,6 @@ def main():
     sea_hist(2, data, 'Care of Magical Creatures')
     sea_hist(3, data, 'Arithmancy')
     sea_hist(4, data, 'Potions')
+    plt.show()
 
 main()
