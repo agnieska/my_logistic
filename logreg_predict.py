@@ -133,7 +133,7 @@ for i in range(0, 4):
         temp == i+1, switcher[i], Classifiers_texte)
 Classifiers_texte = list(Classifiers_texte)
 df["Index"] = data_clean['Index']
-df["Houses"] = Classifiers_texte
+df["Hogwarts House"] = Classifiers_texte
 pd.DataFrame(df).to_csv("houses.csv", index = False)
 
 print("         RESULT: \n", pd.DataFrame(df).head(20))
