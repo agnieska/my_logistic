@@ -7,7 +7,7 @@ import pandas as pd
 from pprint import pprint
 import math
 from my_library import  calcul_quantile, calcul_variance
-
+'''
 def calcul_mediane(array):
     l = len(array)
     if l%2 == 1 :
@@ -51,7 +51,7 @@ def calcul_variance (array) :
     std = np.round(variance **0.5, 6)
     return count, mean, std
 
-
+'''
 def calcul_describe_for_one_column(data_train, column_name):
     #values = list(train_dict[column_name].values())
     values = list(data_train[column_name])

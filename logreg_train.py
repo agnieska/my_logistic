@@ -9,105 +9,9 @@ from pprint import pprint
 # from tqdm import tqdm
 import json
 from sklearn.metrics import accuracy_score
+from my_library import read_json, save_json, sigmoid, center_reduce_feature, center_reduce_matrix_t, hipothesis_log, predict, cost_log, fit 
 
 print("\nRESULT: Import completed")
-
-######################################################################
-# ### Math functions
-######################################################################
-
-
-def sigmoid(z):
-    return 1/(1 + np.exp(-z))
-
-# normalize pour un feature
-
-
-def centrer_reduire_feature(X):
-    stdev = np.std(X)
-    mean = np.mean(X)
-    if stdev != 0:
-        A = []
-        for x in X:
-            a = float((x - mean)/stdev)
-            A.append(a)
-        return np.array(A), stdev, mean
-    else:
-        return X, stdev, mean
-
-# normalize pour plusieures features a la fois
-
-
-def centrer_reduire_matrix(XXX):
-    mean = np.mean(XXX, axis=0)
-    stdev = np.std(XXX, axis=0)
-    stdev = stdev
-    XXX = (XXX - mean)/stdev
-    return XXX, mean, stdev
-
-######################################################################
-# ### Json functions
-######################################################################
-
-
-def read_json(filename):
-    with open(filename, encoding='utf-8') as file:
-        data_dict = json.load(file)
-    return data_dict
-
-
-def save_json(data_dict, filename):
-    if not filename:
-        filename = "myjson.json"
-    with open(filename, mode='w', encoding='utf-8') as file:
-        json.dump(data_dict, file)
-
-######################################################################
-# ### Model logistic :  Hypothese sigmoidale function
-######################################################################
-
-
-def hipothesis_log(X, theta):
-    return (sigmoid(np.dot(X, theta)))
-
-
-def predict(X, theta):
-    return (sigmoid(np.dot(X, theta)))
-
-
-######################################################################
-# ### la fonction du cout logistique
-######################################################################
-
-def cost_log(X, y, theta):
-    m = X.shape[0]
-    hip = hipothesis_log(X, theta)
-    #print("hip=", hip)
-    hip[hip == 1] = 0.999
-    #print("hip=", hip)
-    loss = y * np.log(hip) + (1-y) * np.log(1-hip)
-    #print("loss=", loss)
-    cost = (-1/m) * (np.sum(loss))
-    return cost
-
-
-######################################################################
-# ### Funtions FIT with cost
-######################################################################
-
-def fit(X, y, theta, alpha, num_iters):
-    # m : nombre d'enregistrements
-    m = X.shape[0]
-    J_history = []
-    # for _ in tqdm(range(num_iters)):
-    for _ in range(num_iters):
-        #loss = hipothesis_log(X, theta) - y
-        # gradient = (alpha / m) * np.dot(loss, X))
-        #theta = theta - gradient
-        theta = theta - (alpha/m) * np.dot((predict(X, theta) - y), X)
-        cost = cost_log(X, y, theta)
-        J_history.append(cost)
-    return theta, J_history
 
 
 # Loading
@@ -125,7 +29,7 @@ except:
 
 # ### Definir les dimensions du dataset n: nombre de colonnes, m - nombre d'enregistrements, liste des variables
 ##########################################################################################################################
-print("...analysing data ")
+#print("...analysing data ")
 try:
     m = data_raw['Index'].shape[0]
     n = data_raw.shape[1]
@@ -134,7 +38,7 @@ try:
 except:
     print("         ERROR: Dataset dimensions to small or impossible to find")
     sys.exit()
-print("...renaming columns ")
+#print("...renaming columns ")
 try:
     column_names_list = list(data_raw.columns)
     column_short_names_list = [ name.replace("Hogwarts", "").replace(" ", "")[:6] for name in column_names_list ]
@@ -160,7 +64,7 @@ print("\n\n", data_clean[column_short_names_list[:10]].head(7))
 #print(data_raw[column_names_list[5:10]].head(5))
 #print(data_raw[column_names_list[10:15]].head(5))
 print("\n", data_clean[column_short_names_list[10:]].head(7))
-print("\n               Column full names are :\n", column_names_list[:10], "\n", column_names_list[10:])
+#print("\n               Column full names are :\n", column_names_list[:10], "\n", column_names_list[10:])
 
 # Define X
 #################################################################################################################################
@@ -168,17 +72,15 @@ print("\n\n#####################################################################
 print("\n                        DEFINE COLUMNS TO ANALYSE AND LEARN ( X ) ")
 print("\n######################################################################################################################")
 
-
-
 # Select columns
 ###############################################################################################################################
-print("\n...Taking variables : col_4 Birthday to col_19 Flying")
+#print("\n...Taking variables : col_4 Birthday to col_19 Flying")
 X3_16 = np.array(data_clean[column_short_names_list[6:19]])
 
 # Date Column "Birthday Day"
 ###############################################################################################################################
 X1 = list(data_clean['Birthd'])
-print("...Converting Birthday to age in days ", list(set(X1))[:6])
+#print("...Converting Birthday to age in days ", list(set(X1))[:6])
 # convertir X1 en nombre de jours
 today = datetime.today()
 X1 = [(today - parser.parse(el)).days for el in X1]
@@ -191,7 +93,7 @@ X1 = np.array(X1)
 # Text Column "Best Hand"
 ##############################################################################################################################
 X2 = list(data_clean['BestHa'])
-print("...Converting 'Best Hand' to binary cathegories", set(X2))
+#print("...Converting 'Best Hand' to binary cathegories", set(X2))
 # convertir X1 en binaire
 X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
 X2 = np.array(X2)
@@ -209,9 +111,9 @@ print(df.head(7))
 
 # Normalize
 ##############################################################################################################################
-print("\n\n...Normalizing all  variables with center-reduce method")
-X_norm, X_means, X_std = centrer_reduire_matrix(X)
-print("         RESULT: X Normalized X data, dim",    X_norm.shape, ":\n")
+#print("\n\n...Normalizing all  variables with center-reduce method")
+X_norm, X_means, X_std = center_reduce_matrix_t(X)
+print("\n\n         RESULT: X Normalized X data, dim",    X_norm.shape, ":\n")
 df = pd.DataFrame(np.around(X_norm, decimals=2))
 df.columns = column_short_names_list[4:]
 print(df.head(7))
@@ -219,13 +121,13 @@ print(df.head(7))
 
 # Column for X0
 #############################################################################################################################
-print("\n\n...Adding a column of ones as X0")
+#print("\n\n...Adding a column of ones as X0")
 X0 = np.ones(m)
 X_norm = np.c_[X0, X_norm]
 X_names = ["X_"+str(a) for a in range (0,X_norm.shape[1])]
 df = pd.DataFrame(np.around(X_norm, decimals=2))
 df.columns = X_names
-print("         RESULT : Final X matrix with dimensions :", X_norm.shape, ":\n")
+print("\n\n         RESULT : Final X matrix with dimensions :", X_norm.shape, ":\n")
 print( df.head(7))
 
 X = X_norm
@@ -239,7 +141,7 @@ print("\n#######################################################################
 
 # Converting Hogward House to  np.array Y
 ###############################################################################################################################
-print("\n... Converting one Hogwarts House texte column to 4 binary columns")
+#print("\n... Converting one Hogwarts House texte column to 4 binary columns")
 y_texte = list(data_clean['House'])
 print("\n         RESULTS : Number of students classified to Hogward House : ",
       np.array(y_texte).shape[0])
@@ -269,7 +171,7 @@ theta_matrix = []
 costs = []
 for c in range(0, 4):
     theta_vector = np.zeros(X.shape[1])
-    print("...initialize theta for ", switcher[c])
+    #print("...initialize theta for ", switcher[c])
     theta_vector, J_history = fit(X, Y[c], theta_vector, 0.05547, 4000)
     print("...learned theta for ", switcher[c])
     theta_matrix.append(theta_vector)
@@ -305,7 +207,7 @@ if yes == "Y" or yes == "y":
 
     # Calculate probabiities
     ######################################################################################################################################
-    print("\n...Calculating probabilities for all 4 classes (Houses) and all students with learned theta coefficients")
+    #print("\n...Calculating probabilities for all 4 classes (Houses) and all students with learned theta coefficients")
     classProbabilities = []
     df = {}
     for i in range(0, 4):
@@ -319,7 +221,7 @@ if yes == "Y" or yes == "y":
 
     # Classify
     #########################################################################################################################################
-    print("...Classifying with numerical values (0,1,2,3) ")
+    #print("...Classifying with numerical values (0,1,2,3) ")
     Classifiers_matrix = []
     for i in range(0, 4):
         classifier = [(i+1) if a > 0.4 else 0 for a in classProbabilities[i]]
@@ -333,7 +235,7 @@ if yes == "Y" or yes == "y":
 
     # Recode
     ########################################################################################################################################
-    print("...Recoding learned numerical values (0,1,2,3) into text values ('Gryf','Rav','Sly','Huff')")
+    #print("...Recoding learned numerical values (0,1,2,3) into text values ('Gryf','Rav','Sly','Huff')")
     switcher = {0: 'Gryffindor', 2: 'Ravenclaw',
                 3: 'Slytherin', 1: 'Hufflepuff'}
     temp = Classifiers_list.copy()
@@ -348,7 +250,7 @@ if yes == "Y" or yes == "y":
 
     # Calculate error
     ########################################################################################################################################
-    print("...Comparing classification results with empirical results ")
+    #print("...Comparing classification results with empirical results ")
     df["Empirical"] = y_texte
     #print("\n      RESULT: Empirical values were: \n", y_texte[:10])
     accuracy = []
@@ -360,7 +262,7 @@ if yes == "Y" or yes == "y":
         else:
             accuracy.append(1)
     df["Accuracy"] = accuracy
-    print("...Calculating accuracy of learning ")
+    #print("...Calculating accuracy of learning ")
     print("\n", pd.DataFrame(df).head(10))
     print("\n\n     RESULTS:") 
     print("         Good prediction for                ",

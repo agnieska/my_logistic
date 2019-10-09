@@ -8,9 +8,10 @@ import pandas as pd
 from datetime import datetime
 from dateutil import parser
 from pprint import pprint
-import json
+import sys
+from my_library import read_json, save_json, sigmoid, centrer_reduire_feature, centrer_reduire_matrix_p
 
-
+"""
 ######################################################################
 # ### Math functions
 ######################################################################
@@ -63,20 +64,30 @@ def save_json(data_dict, filename):
     with open(filename, mode='w', encoding='utf-8') as file:
         json.dump(data_dict, file)
 
+"""
 
 # Loading and cleaning data
 ###########################################################################################################################
 print("\n##################################################################################################################")
-print("\n                               LOAD DATA ")
+print("\n                               LOAD DATA AND PARAMETERS ")
 print("\n##################################################################################################################")
 print("\n...loading theta training results")
-theta_dict = read_json("learning_params.json")
+try:
+    theta_dict = read_json("learning_params.json")
+except:
+    print("         ERROR: File with learning parameters not found")
+    sys.exit()
 theta_matrix = np.array([theta_dict['Gryffindor'] , theta_dict['Hufflepuff'], theta_dict['Ravenclaw'], theta_dict['Slytherin']])
 means = np.array(theta_dict['means'])
 stdev = np.array(theta_dict['std'])
 print(theta_matrix)
 print("\n...loading test data")
-data_test = pd.read_csv("resources/dataset_test.csv")
+try:
+    data_test = pd.read_csv("resources/dataset_test.csv")
+except:
+    print("         ERROR: File with test data not found")
+    sys.exit()
+
 print(data_test.head(10))
 data_clean = data_test.fillna(data_test.mean())
 column_names_list = list(data_clean.columns)
@@ -93,7 +104,7 @@ X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
 X2 = np.array(X2)
 X3_16 = np.array(data_clean[column_names_list[6:19]])
 X = np.c_[X1, X2, X3_16]
-X_norm = centrer_reduire_matrix(X, means, stdev)
+X_norm = centrer_reduire_matrix_p(X, means, stdev)
 X0 = np.ones(m)
 X_norm = np.c_[X0, X_norm]
 X = X_norm
