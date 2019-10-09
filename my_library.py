@@ -11,36 +11,38 @@ import sys
 # ### Math / Stats functions
 ######################################################################
 
-def calcul_variance (array) :
+def calcul_variance(array):
     count = len(array)
     somme = math.fsum(array)
     mean = np.round(somme/count, 6)
-    variance = sum((array - mean)**2)/(count -1)
-    std = np.round(variance **0.5, 6)
+    variance = sum((array - mean)**2)/(count - 1)
+    std = np.round(variance ** 0.5, 6)
     return count, mean, std
+
 
 def calcul_mediane(array):
     l = len(array)
-    if l%2 == 1 :
+    if l % 2 == 1:
         print(l, "is impair")
         index = int((l+1)/2)
         print("median impair index", index)
         print("mediane impair value=", array[index])
         print("mediane precedent value=", array[index-1])
         return index, array[index-1]
-    else :
-        print(l , "is pair")
+    else:
+        print(l, "is pair")
         i = int(l/2)
-        #print ("i = ", i)
+        # print ("i = ", i)
         j = i + 1
-        #print("j = ", j)
+        # print("j = ", j)
         float_index = (i+j)/2
         print("median pair float index", float_index)
         value = array[i] + (array[j]-array[i])*0.58
-        #print("median pair value = ", value)
+        # print("median pair value = ", value)
         return float_index, value
 
-def calcul_quantile (array):
+
+def calcul_quantile(array):
     print("\n\n")
     i50, q50 = calcul_mediane(array)
     print("median index = ", i50, "median value", q50)
@@ -67,10 +69,12 @@ def center_reduce_feature(X):
     else:
         return X, stdev, mean
 
+
 # normalize pour plusieures features a la fois
 def center_reduce_matrix_p(XXX, means, stdev):
     XXX = (XXX - means)/stdev
     return np.array(XXX)
+
 
 def center_reduce_matrix_t(XXX):
     mean = np.mean(XXX, axis=0)
@@ -82,25 +86,30 @@ def center_reduce_matrix_t(XXX):
 # ### Linear Regression functions
 ######################################################################
 
+
 def sigmoid(z):
     return 1/(1 + np.exp(-z))
 
-def hipothesis_log(X, theta):
+
+def hipothesis(X, theta):
     return (sigmoid(np.dot(X, theta)))
+
 
 def predict(X, theta):
     return (sigmoid(np.dot(X, theta)))
 
-def cost_log(X, y, theta):
+
+def cost(X, y, theta):
     m = X.shape[0]
     hip = hipothesis_log(X, theta)
-    #print("hip=", hip)
+    # print("hip=", hip)
     hip[hip == 1] = 0.999
-    #print("hip=", hip)
+    # print("hip=", hip)
     loss = y * np.log(hip) + (1-y) * np.log(1-hip)
-    #print("loss=", loss)
+    # print("loss=", loss)
     cost = (-1/m) * (np.sum(loss))
     return cost
+
 
 def fit(X, y, theta, alpha, num_iters):
     # m : nombre d'enregistrements
@@ -108,9 +117,9 @@ def fit(X, y, theta, alpha, num_iters):
     J_history = []
     # for _ in tqdm(range(num_iters)):
     for _ in range(num_iters):
-        #loss = hipothesis_log(X, theta) - y
+        # loss = hipothesis_log(X, theta) - y
         # gradient = (alpha / m) * np.dot(loss, X))
-        #theta = theta - gradient
+        # heta = theta - gradient
         theta = theta - (alpha/m) * np.dot((predict(X, theta) - y), X)
         cost = cost_log(X, y, theta)
         J_history.append(cost)
@@ -130,8 +139,9 @@ def read_json(filename):
         print("cant find file ", filename)
         sys.exit
 
+
 def save_json(data_dict, filename):
-    try: 
+    try:
         if not filename:
             filename = "myjson.json"
         with open(filename, mode='w', encoding='utf-8') as file:
@@ -139,3 +149,4 @@ def save_json(data_dict, filename):
     except:
         print("Cant save the file ", filename)
         sys.exit()
+      

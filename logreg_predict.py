@@ -1,7 +1,5 @@
 
 # coding: utf-8
-#get_ipython().system('pip3 install tqdm')
-#get_ipython().system('pip3 install scipy')
 
 import numpy as np
 import pandas as pd
@@ -9,75 +7,27 @@ from datetime import datetime
 from dateutil import parser
 from pprint import pprint
 import sys
-from my_library import read_json, save_json, sigmoid, centrer_reduire_feature, centrer_reduire_matrix_p
+from my_library import read_json, save_json, sigmoid, center_reduce_feature,
+center_reduce_matrix_p
 
-"""
-######################################################################
-# ### Math functions
-######################################################################
-
-def sigmoid(z):
-    return 1/(1 + np.exp(-z))
-
-
-# test sigmoid
-print("sigmoid de -10 ", sigmoid(-10))
-
-# normalize pour un feature
-
-
-def centrer_reduire_feature(X):
-    stdev = np.std(X)
-    mean = np.mean(X)
-    if stdev != 0:
-        A = []
-        for x in X:
-            a = float((x - mean)/stdev)
-            A.append(a)
-        return np.array(A), stdev, mean
-    else:
-        return X, stdev, mean
-
-# normalize pour plusieures features a la fois
-
-
-def centrer_reduire_matrix(XXX, means, stdev):
-    #mean = np.mean(XXX, axis=0)
-    #stdev = np.std(XXX, axis=0)
-    XXX = (XXX - means)/stdev
-    return np.array(XXX)
-
-######################################################################
-# ### Json functions
-######################################################################
-
-
-def read_json(filename):
-    with open(filename, encoding='utf-8') as file:
-        data_dict = json.load(file)
-    return data_dict
-
-
-def save_json(data_dict, filename):
-    if not filename:
-        filename = "myjson.json"
-    with open(filename, mode='w', encoding='utf-8') as file:
-        json.dump(data_dict, file)
-
-"""
 
 # Loading and cleaning data
-###########################################################################################################################
-print("\n##################################################################################################################")
-print("\n                               LOAD DATA AND PARAMETERS ")
-print("\n##################################################################################################################")
+###############################################################################
+print("\n####################################################################")
+print("\n                        LOAD DATA AND PARAMETERS ")
+print("\n####################################################################")
 print("\n...loading theta training results")
 try:
     theta_dict = read_json("learning_params.json")
 except:
     print("         ERROR: File with learning parameters not found")
     sys.exit()
-theta_matrix = np.array([theta_dict['Gryffindor'] , theta_dict['Hufflepuff'], theta_dict['Ravenclaw'], theta_dict['Slytherin']])
+theta_matrix = np.array([
+    theta_dict['Gryffindor'],
+    theta_dict['Hufflepuff'],
+    theta_dict['Ravenclaw'],
+    theta_dict['Slytherin']
+    ])
 means = np.array(theta_dict['means'])
 stdev = np.array(theta_dict['std'])
 print(theta_matrix)
@@ -108,7 +58,7 @@ X_norm = centrer_reduire_matrix_p(X, means, stdev)
 X0 = np.ones(m)
 X_norm = np.c_[X0, X_norm]
 X = X_norm
-X_names = ["X_"+str(a) for a in range (0,X.shape[1])]
+X_names = ["X_"+str(a) for a in range(0, X.shape[1])]
 df = pd.DataFrame(np.around(X_norm, decimals=2))
 df.columns = X_names
 print("\n\n...Defining X matrix with dimensions :", X.shape, ":\n")
@@ -116,11 +66,11 @@ print(df.head(7))
 
 
 # Prediction
-########################################################################################################################
+###############################################################################
 
-print("\n###########################################################################################################################")
-print("\n                              PREDICTION              ")
-print("\n############################################################################################################################")
+print("\n####################################################################")
+print("\n                          PREDICTION              ")
+print("\n####################################################################")
 switcher = {0: 'Gryffindor', 2: 'Ravenclaw', 3: 'Slytherin', 1: 'Hufflepuff'}
 classProbabilities = []
 df = {}
@@ -145,8 +95,7 @@ for i in range(0, 4):
 Classifiers_texte = list(Classifiers_texte)
 df["Index"] = data_clean['Index']
 df["Hogwarts House"] = Classifiers_texte
-pd.DataFrame(df).to_csv("houses.csv", index = False)
+pd.DataFrame(df).to_csv("houses.csv", index=False)
 
 print("         RESULT: \n", pd.DataFrame(df).head(20))
 print("\n        Predictions saved to houses.csv")
-
