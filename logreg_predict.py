@@ -7,15 +7,14 @@ from datetime import datetime
 from dateutil import parser
 from pprint import pprint
 import sys
-from my_library import read_json, save_json, sigmoid, center_reduce_feature,
-center_reduce_matrix_p
+from my_library import read_json, save_json, sigmoid, \
+    center_reduce_matrix_p, print_header
 
-
-# Loading and cleaning data
 ###############################################################################
-print("\n####################################################################")
-print("\n                        LOAD DATA AND PARAMETERS ")
-print("\n####################################################################")
+#                       LOAD DATA AND PARAMETERS
+###############################################################################
+print_header("LOAD DATA AND PARAMETERS")
+
 print("\n...loading theta training results")
 try:
     theta_dict = read_json("learning_params.json")
@@ -54,7 +53,7 @@ X2 = [0.0 if el == 'Left' else 1.0 for el in X2]
 X2 = np.array(X2)
 X3_16 = np.array(data_clean[column_names_list[6:19]])
 X = np.c_[X1, X2, X3_16]
-X_norm = centrer_reduire_matrix_p(X, means, stdev)
+X_norm = center_reduce_matrix_p(X, means, stdev)
 X0 = np.ones(m)
 X_norm = np.c_[X0, X_norm]
 X = X_norm
@@ -65,12 +64,10 @@ print("\n\n...Defining X matrix with dimensions :", X.shape, ":\n")
 print(df.head(7))
 
 
-# Prediction
 ###############################################################################
-
-print("\n####################################################################")
-print("\n                          PREDICTION              ")
-print("\n####################################################################")
+#                           PREDICTION
+###############################################################################
+print_header("PREDICTION")
 switcher = {0: 'Gryffindor', 2: 'Ravenclaw', 3: 'Slytherin', 1: 'Hufflepuff'}
 classProbabilities = []
 df = {}
@@ -97,5 +94,5 @@ df["Index"] = data_clean['Index']
 df["Hogwarts House"] = Classifiers_texte
 pd.DataFrame(df).to_csv("houses.csv", index=False)
 
-print("         RESULT: \n", pd.DataFrame(df).head(20))
+print("         RESULT EXAMPLE: \n", pd.DataFrame(df).head(20))
 print("\n        Predictions saved to houses.csv")

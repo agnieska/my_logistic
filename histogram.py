@@ -4,23 +4,10 @@ Faites un script nommé histogram qui affiche un histogram répondant
 """
 import numpy as np
 import pandas as pd
-# from pprint import pprint
-# import math
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
-
-
-def prepare_dataframe(filename, missing, norm):
-    data = pd.read_csv(filename)
-    column_list = list(data.columns)
-    if missing is True:
-        data = data.fillna(data.mean())
-    if norm is True:
-        for name in column_list[6:19]:
-            data[name] = (data[name] - data[name].mean()) /
-            (data[name].max() - data[name].min())
-    return data, column_list
+from my_library import read_csv, prepare_dataframe
 
 
 def plt_histograms(fig_nb, df, variables, n_cols=3):
@@ -70,18 +57,21 @@ def sea_hist(fig_nb, data, column_name):
     # plt.show()
 
 
-def main():
+def main(filename):
     warnings.filterwarnings(action='once')
+
     print("\nQUESTION: Quel cours de Poudlard a une répartition des notes") 
     print("homogènes entre les quatres maisons ?")
-    data, column_list = prepare_dataframe(
-        "resources/dataset_train.csv",
-        missing=True,
-        norm=True
-        )
-    # plt.hist(data['Arithmancy'], bins=10)
-    # Select columns with numeric values or not
+    
+    if not filename:
+        filename = "resources/dataset_train.csv"
+    data = read_csv(filename)
+    data, column_list = prepare_dataframe(data, missing=True, norm=True)
+
+    # Select columns with numeric values
     variables = column_list[6:19]
+    
+    # Plot figures
     plt_histograms(1, data, variables, 3)
     print("\nRESPONSE: Care of Magical Creatures and Arithmancy")
     print("ont une répartition des notes homogènes entre les quatres maisons\n")
@@ -90,4 +80,4 @@ def main():
     sea_hist(4, data, 'Potions')
     plt.show()
 
-main()
+main("")

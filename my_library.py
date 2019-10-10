@@ -1,15 +1,15 @@
 
 import numpy as np
 import pandas as pd
-from pprint import pprint
 import math
 import json
 import sys
-
+from tqdm import tqdm
 
 ######################################################################
 # ### Math / Stats functions
 ######################################################################
+
 
 def calcul_variance(array):
     count = len(array)
@@ -23,36 +23,31 @@ def calcul_variance(array):
 def calcul_mediane(array):
     l = len(array)
     if l % 2 == 1:
-        print(l, "is impair")
-        index = int((l+1)/2)
-        print("median impair index", index)
-        print("mediane impair value=", array[index])
-        print("mediane precedent value=", array[index-1])
-        return index, array[index-1]
+        # print(l, "is impair")
+        int_middle = (l + 1) // 2 - 1
+        return int_middle, array[int_middle]
     else:
-        print(l, "is pair")
-        i = int(l/2)
-        # print ("i = ", i)
-        j = i + 1
-        # print("j = ", j)
-        float_index = (i+j)/2
-        print("median pair float index", float_index)
-        value = array[i] + (array[j]-array[i])*0.58
-        # print("median pair value = ", value)
-        return float_index, value
+        # print(l, "is pair")
+        i = l // 2 - 1
+        j = l // 2
+        float_middle = (l + 1) / 2 - 1
+        middle_value = array[i] + 0.5 * (array[j] - array[i])
+        return float_middle, middle_value
 
 
 def calcul_quantile(array):
-    print("\n\n")
+    # print("\n\n")
     i50, q50 = calcul_mediane(array)
-    print("median index = ", i50, "median value", q50)
-    ceil = math.ceil(i50)
-    i25, q25 = calcul_mediane(array[:ceil-1])
-    print("q25 index = ", i50, "q25 value", q50)
-    floor = math.floor(i50)
-    i75, q75 = calcul_mediane(array[floor:])
-    print("q75 index = ", i50, "q75 value", q50)
-    i25 += i75
+    if isinstance(i50, int):
+        i25, q25 = calcul_mediane(array[:i50+1])
+        i75, q75 = calcul_mediane(array[i50:])
+    elif isinstance(i50, float):
+        ceil = math.ceil(i50)
+        i25, q25 = calcul_mediane(np.append(array[:ceil], q50))
+        i75, q75 = calcul_mediane(np.append(q50, array[ceil:]))
+    else:
+        i25 += i75  # c'est rien cette ligne
+        print("ERROR boom", "index =", i50, "type=", type(i50))
     return q25, q50, q75
 
 
@@ -82,6 +77,17 @@ def center_reduce_matrix_t(XXX):
     XXX = (XXX - mean)/stdev
     return XXX, mean, stdev
 
+
+def prepare_dataframe(data, missing, norm):
+    column_list = list(data.columns)
+    if missing is True:
+        data = data.fillna(data.mean())
+    if norm is True:
+        for name in column_list[6:19]:
+            data[name] = (data[name] - data[name].mean()) / (data[name].max() - data[name].min())
+    return data, column_list
+
+
 ######################################################################
 # ### Linear Regression functions
 ######################################################################
@@ -99,9 +105,9 @@ def predict(X, theta):
     return (sigmoid(np.dot(X, theta)))
 
 
-def cost(X, y, theta):
+def calcul_cost(X, y, theta):
     m = X.shape[0]
-    hip = hipothesis_log(X, theta)
+    hip = hipothesis(X, theta)
     # print("hip=", hip)
     hip[hip == 1] = 0.999
     # print("hip=", hip)
@@ -115,13 +121,13 @@ def fit(X, y, theta, alpha, num_iters):
     # m : nombre d'enregistrements
     m = X.shape[0]
     J_history = []
-    # for _ in tqdm(range(num_iters)):
-    for _ in range(num_iters):
-        # loss = hipothesis_log(X, theta) - y
+    # for _ in range(num_iters):
+    for _ in tqdm(range(num_iters)):
+        # loss = hipothesis(X, theta) - y
         # gradient = (alpha / m) * np.dot(loss, X))
-        # heta = theta - gradient
+        # theta = theta - gradient
         theta = theta - (alpha/m) * np.dot((predict(X, theta) - y), X)
-        cost = cost_log(X, y, theta)
+        cost = calcul_cost(X, y, theta)
         J_history.append(cost)
     return theta, J_history
 
@@ -129,6 +135,7 @@ def fit(X, y, theta, alpha, num_iters):
 ######################################################################
 # ### Json functions
 ######################################################################
+
 
 def read_json(filename):
     try:
@@ -149,4 +156,24 @@ def save_json(data_dict, filename):
     except:
         print("Cant save the file ", filename)
         sys.exit()
-      
+
+
+def read_csv(filename):
+    try:
+        data = pd.read_csv(filename)
+        return data
+    except:
+        print("\nERROR: Could not open ", filename)
+        sys.exit()
+
+######################################################################
+# ### Graphic functions
+######################################################################
+
+
+def print_header(texte):
+    l = "###############################################################"
+    my_line = "\n"+l+l
+    print(my_line)
+    print("\n                     "+texte)
+    print(my_line)
